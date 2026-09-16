@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Search, Bot, User as UserIcon, Menu, X, ChevronDown,
+  Search, User as UserIcon, Menu, X, ChevronDown,
   GraduationCap, BookOpen, Building2, PhoneCall, Award,
   Sparkles, ExternalLink, Lock, ArrowRight
 } from 'lucide-react';
@@ -30,25 +30,6 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-40 w-full shadow-xs">
-      {/* Top Notification Bar */}
-      <div className="bg-[#0B2545] text-slate-100 text-[11px] font-medium px-4 py-1.5 border-b border-blue-950/40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <span className="bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded text-[10px] tracking-wide shrink-0">
-              ADMISSIONS 2026-27
-            </span>
-            <span className="truncate text-slate-200">
-              B.Tech EAPCET / ECET Counseling Code: <strong className="text-amber-300">SREC</strong> | Autonomous Academic Regulations R23
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-4 text-slate-300">
-            <span>Affiliated to JNTUA</span>
-            <span>&bull;</span>
-            <span>NAAC &apos;A&apos; Grade &amp; NBA Accredited</span>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navigation Bar */}
       <nav className="bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 transition-colors">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -199,15 +180,6 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
               <kbd className="hidden sm:inline-block bg-white px-1.5 py-0.5 rounded text-[10px] text-slate-500 font-mono border border-slate-200 shadow-xs">
                 ⌘K
               </kbd>
-            </button>
-
-            {/* Ask SREC AI Button */}
-            <button
-              onClick={onOpenAI}
-              className="flex items-center gap-1.5 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all hover:shadow hover:scale-[1.02]"
-            >
-              <Bot className="w-4 h-4 text-amber-300 animate-pulse" />
-              <span>Ask AI</span>
             </button>
 
             {/* Portal Access */}
