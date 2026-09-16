@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database with pgvector extension
+  postgres-vector:
+    image: pgvector/pgvector:pg16
+    container_name: srec-postgres-vector
+    restart: always
+    environment:
+      POSTGRES_DB: srec_smart_campus
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: srec_secure_password_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d srec_smart_campus"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. FastAPI Backend & AI RAG Engine
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: srec-backend
+    restart: always
+    depends_on:
+      postgres-vector:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:srec_secure_password_2026@postgres-vector:5432/srec_smart_campus
+      JWT_SECRET: srec_super_secret_jwt_key_smart_campus_2026_engineering_nandyal
+      FRONTEND_URL: http://localhost:3000
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      DEBUG: "True"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/data
+
+  # 3. Next.js Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: srec-frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
