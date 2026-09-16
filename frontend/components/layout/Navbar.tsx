@@ -9,6 +9,7 @@ import {
   Sparkles, ExternalLink, Lock, ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { assetUrl } from '@/lib/assets';
 
 interface NavbarProps {
   onOpenSearch: () => void;
@@ -20,13 +21,34 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
   const [aboutDropdown, setAboutDropdown] = useState(false);
   const [academicsDropdown, setAcademicsDropdown] = useState(false);
   const [deptDropdown, setDeptDropdown] = useState(false);
+  const [academicsOpen, setAcademicsOpen] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const isAuthenticated = !!user;
 
-  const isPortal = pathname.startsWith('/student') || pathname.startsWith('/faculty') || pathname.startsWith('/admin');
+  const isPortal = pathname?.startsWith('/student') || pathname?.startsWith('/faculty') || pathname?.startsWith('/admin');
 
   return (
-    <header className="w-full sticky top-0 z-40 shadow-md">
+    <header className="sticky top-0 z-40 w-full shadow-xs">
+      {/* Top Notification Bar */}
+      <div className="bg-[#0B2545] text-slate-100 text-[11px] font-medium px-4 py-1.5 border-b border-blue-950/40">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <span className="bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded text-[10px] tracking-wide shrink-0">
+              ADMISSIONS 2026-27
+            </span>
+            <span className="truncate text-slate-200">
+              B.Tech EAPCET / ECET Counseling Code: <strong className="text-amber-300">SREC</strong> | Autonomous Academic Regulations R23
+            </span>
+          </div>
+          <div className="hidden md:flex items-center gap-4 text-slate-300">
+            <span>Affiliated to JNTUA</span>
+            <span>&bull;</span>
+            <span>NAAC &apos;A&apos; Grade &amp; NBA Accredited</span>
+          </div>
+        </div>
+      </div>
+
       {/* Main Navigation Bar */}
       <nav className="bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 transition-colors">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -34,7 +56,7 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
           <Link href="/" className="flex items-center gap-3.5 group">
             <div className="relative w-12 h-13 flex-shrink-0 group-hover:scale-105 transition-transform">
               <img
-                src="/images/srec_logo.png"
+                src={assetUrl('/images/srec_logo.png')}
                 alt="Santhiram Engineering College Official Crest"
                 className="w-full h-full object-contain filter drop-shadow-sm"
               />

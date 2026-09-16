@@ -10,6 +10,7 @@ import {
   Maximize2, X, Star, Lock
 } from 'lucide-react';
 import { CollegeAPI } from '@/lib/api';
+import { assetUrl } from '@/lib/assets';
 
 export default function HomePage() {
   const [stats, setStats] = useState({
@@ -46,7 +47,7 @@ export default function HomePage() {
             <div className="flex items-center gap-3.5">
               <div className="w-14 h-16 flex-shrink-0 filter drop-shadow-md">
                 <img
-                  src="/images/srec_logo.png"
+                  src={assetUrl('/images/srec_logo.png')}
                   alt="Santhiram Engineering College Official Crest"
                   className="w-full h-full object-contain"
                 />
@@ -146,7 +147,7 @@ export default function HomePage() {
                   onClick={() => setIsImageModalOpen(true)}
                 >
                   <img
-                    src="/images/campus_hero.jpg"
+                    src={assetUrl('/images/campus_hero.jpg')}
                     alt="Santhiram Engineering College Iconic Quadrangle Campus, Nandyal"
                     className="w-full h-[380px] sm:h-[450px] object-cover object-center transform group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
@@ -196,7 +197,7 @@ export default function HomePage() {
               </div>
 
               <img
-                src="/images/campus_hero.jpg"
+                src={assetUrl('/images/campus_hero.jpg')}
                 alt="Santhiram Engineering College High-Resolution Campus Showcase"
                 className="w-full max-h-[75vh] object-contain bg-slate-950"
               />
@@ -618,7 +619,7 @@ export default function HomePage() {
           <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200 group relative bg-slate-900">
               <img
-                src="/images/campus_hero.jpg"
+                src={assetUrl('/images/campus_hero.jpg')}
                 alt="SREC Quadrangle Campus Architecture"
                 className="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -631,7 +632,7 @@ export default function HomePage() {
 
             <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200 group relative bg-slate-900">
               <img
-                src="/images/computing_lab.jpg"
+                src={assetUrl('/images/computing_lab.jpg')}
                 alt="SREC Advanced Computing & AI Laboratory"
                 className="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-500"
               />

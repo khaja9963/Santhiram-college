@@ -4,6 +4,7 @@ import {
   GraduationCap, MapPin, Phone, Mail, Clock, ShieldCheck,
   Award, ExternalLink, Heart
 } from 'lucide-react';
+import { assetUrl } from '@/lib/assets';
 
 export default function Footer() {
   return (
@@ -15,7 +16,7 @@ export default function Footer() {
             <div className="flex items-center gap-3.5">
               <div className="w-13 h-15 flex-shrink-0">
                 <img
-                  src="/images/srec_logo.png"
+                  src={assetUrl('/images/srec_logo.png')}
                   alt="Santhiram Engineering College Official Crest"
                   className="w-full h-full object-contain filter drop-shadow-md"
                 />
