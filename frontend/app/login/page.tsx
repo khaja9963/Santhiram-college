@@ -19,7 +19,7 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<UserRole>('STUDENT');
-  const { login, isLoading } = useAuth();
+  const { login, demoLogin, isLoading } = useAuth();
   const searchParams = useSearchParams();
 
   const roleQuery = searchParams.get('role');
@@ -146,53 +146,77 @@ function LoginForm() {
           </div>
         )}
 
-        {/* Development Seed Accounts Helper (Clearly Labeled: DEVELOPMENT ONLY) */}
-        <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-2xl space-y-2">
+        {/* Instant 1-Click Demo Login Card */}
+        <div className="p-4 bg-gradient-to-br from-blue-50/90 via-indigo-50/70 to-blue-100/50 border border-blue-200 rounded-2xl space-y-3 shadow-xs">
           <div className="flex items-center justify-between">
-            <div className="text-[11px] font-bold text-amber-900 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              <span>DEVELOPMENT ONLY &bull; Quick Seed Roles:</span>
+            <div className="text-xs font-bold text-[#0B2545] flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+              <span>Instant 1-Click Demo Login</span>
             </div>
-            <span className="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.5 rounded">DEV</span>
+            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+              No Password Needed
+            </span>
           </div>
-          <div className="grid grid-cols-3 gap-1.5">
+
+          <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
-              onClick={() => handleRolePreset('STUDENT')}
-              className={`py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
-                selectedRole === 'STUDENT'
-                  ? 'bg-blue-800 text-white shadow-xs'
-                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-              }`}
+              onClick={() => demoLogin('STUDENT')}
+              className="py-2.5 px-2 bg-white hover:bg-blue-800 text-slate-800 hover:text-white rounded-xl border border-blue-200/80 shadow-xs transition-all duration-200 flex flex-col items-center gap-1 group text-center active:scale-95 cursor-pointer"
+              title="Instant Login as Student"
             >
-              <User className="w-3 h-3" />
-              <span>Student</span>
+              <div className="w-8 h-8 rounded-full bg-blue-100 group-hover:bg-blue-700 text-blue-900 group-hover:text-white flex items-center justify-center transition-colors">
+                <GraduationCap className="w-4 h-4" />
+              </div>
+              <span className="text-xs font-bold leading-tight">Student</span>
+              <span className="text-[9px] text-slate-400 group-hover:text-blue-200 font-mono">22X51A0501</span>
             </button>
+
             <button
               type="button"
-              onClick={() => handleRolePreset('FACULTY')}
-              className={`py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
-                selectedRole === 'FACULTY'
-                  ? 'bg-blue-800 text-white shadow-xs'
-                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-              }`}
+              onClick={() => demoLogin('FACULTY')}
+              className="py-2.5 px-2 bg-white hover:bg-blue-800 text-slate-800 hover:text-white rounded-xl border border-blue-200/80 shadow-xs transition-all duration-200 flex flex-col items-center gap-1 group text-center active:scale-95 cursor-pointer"
+              title="Instant Login as Faculty"
             >
-              <Briefcase className="w-3 h-3" />
-              <span>Faculty</span>
+              <div className="w-8 h-8 rounded-full bg-indigo-100 group-hover:bg-blue-700 text-indigo-900 group-hover:text-white flex items-center justify-center transition-colors">
+                <Briefcase className="w-4 h-4" />
+              </div>
+              <span className="text-xs font-bold leading-tight">Faculty</span>
+              <span className="text-[9px] text-slate-400 group-hover:text-blue-200 font-mono">FAC-0104</span>
             </button>
+
             <button
               type="button"
-              onClick={() => handleRolePreset('ADMIN')}
-              className={`py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
-                selectedRole === 'ADMIN'
-                  ? 'bg-blue-800 text-white shadow-xs'
-                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-              }`}
+              onClick={() => demoLogin('ADMIN')}
+              className="py-2.5 px-2 bg-white hover:bg-blue-800 text-slate-800 hover:text-white rounded-xl border border-blue-200/80 shadow-xs transition-all duration-200 flex flex-col items-center gap-1 group text-center active:scale-95 cursor-pointer"
+              title="Instant Login as Admin"
             >
-              <Shield className="w-3 h-3" />
-              <span>Admin</span>
+              <div className="w-8 h-8 rounded-full bg-amber-100 group-hover:bg-blue-700 text-amber-900 group-hover:text-white flex items-center justify-center transition-colors">
+                <Shield className="w-4 h-4" />
+              </div>
+              <span className="text-xs font-bold leading-tight">Admin</span>
+              <span className="text-[9px] text-slate-400 group-hover:text-blue-200 font-mono">ADM-001</span>
             </button>
           </div>
+
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-blue-100">
+            <span>Autofill credentials form:</span>
+            <div className="flex items-center gap-2 font-bold text-blue-700">
+              <button type="button" onClick={() => handleRolePreset('STUDENT')} className="hover:underline">Student</button>
+              <span>&bull;</span>
+              <button type="button" onClick={() => handleRolePreset('FACULTY')} className="hover:underline">Faculty</button>
+              <span>&bull;</span>
+              <button type="button" onClick={() => handleRolePreset('ADMIN')} className="hover:underline">Admin</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative flex py-0.5 items-center">
+          <div className="flex-grow border-t border-slate-200"></div>
+          <span className="shrink-0 mx-3 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+            Or Sign In With Credentials
+          </span>
+          <div className="flex-grow border-t border-slate-200"></div>
         </div>
 
         {/* Credentials Form */}
