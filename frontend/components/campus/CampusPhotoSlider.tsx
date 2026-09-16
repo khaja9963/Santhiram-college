@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, Maximize2, X, Play, Pause,
   Sparkles, Camera
 } from 'lucide-react';
+import { assetUrl } from '@/lib/assets';
 
 export interface CampusSlide {
   id: string;
@@ -23,7 +24,7 @@ export const SREC_CAMPUS_SLIDES: CampusSlide[] = [
     category: 'Collegiate Quadrangle',
     title: 'Main Academic Quadrangle & Palm Courtyard',
     subtitle: 'Conceived with 4-tier classical collegiate architecture surrounding an inner lawn shaded by royal palm trees along NH-40, Nandyal.',
-    image: '/images/srec_real_campus.jpg',
+    image: assetUrl('/images/srec_real_campus.jpg'),
     alt: 'Santhiram Engineering College Iconic Quadrangle Campus, Nandyal',
   },
   {
@@ -32,7 +33,7 @@ export const SREC_CAMPUS_SLIDES: CampusSlide[] = [
     category: 'Arched Colonnades',
     title: 'Arcaded Balconies & Shaded Corridors',
     subtitle: 'Classic arched walkways engineered for natural cross-ventilation, overlooking the manicured central gardens and tranquil study courtyards.',
-    image: '/images/srec_corridor_arches.jpg',
+    image: assetUrl('/images/srec_corridor_arches.jpg'),
     alt: 'SREC Arched Colonnade Corridors and Royal Palms',
   },
   {
@@ -41,7 +42,7 @@ export const SREC_CAMPUS_SLIDES: CampusSlide[] = [
     category: 'Monumental Gateway',
     title: 'Autonomous Campus Main Entrance Arch',
     subtitle: 'Grand red-stone architectural archway welcoming engineering scholars, industry dignitaries, and visitors along the NH-40 highway.',
-    image: '/images/srec_gate_arch.jpg',
+    image: assetUrl('/images/srec_gate_arch.jpg'),
     alt: 'Santhiram Engineering College Autonomous Main Entrance Arch',
   },
   {
@@ -50,7 +51,7 @@ export const SREC_CAMPUS_SLIDES: CampusSlide[] = [
     category: 'Advanced Laboratories',
     title: 'Modern High-Tech Computing & AI Laboratory',
     subtitle: 'Spacious air-conditioned digital laboratories with 1,000+ networked terminals, GPU clusters, and modern software development tools.',
-    image: '/images/srec_lab_interior.jpg',
+    image: assetUrl('/images/srec_lab_interior.jpg'),
     alt: 'SREC Advanced Computing, AI & Data Science Laboratory Suite',
   },
   {
@@ -59,7 +60,7 @@ export const SREC_CAMPUS_SLIDES: CampusSlide[] = [
     category: '40-Acre Eco-Campus',
     title: 'Palm-Lined Boulevard & Aerial Campus Vista',
     subtitle: 'Expansive view of the 40+ acre green campus featuring tree-lined central avenues, sports grounds, and scenic Nandyal hills in the horizon.',
-    image: '/images/srec_aerial_boulevard.jpg',
+    image: assetUrl('/images/srec_aerial_boulevard.jpg'),
     alt: 'Panoramic Aerial View of SREC Palm Boulevard and Campus Grounds',
   },
 ];
@@ -155,7 +156,7 @@ export default function CampusPhotoSlider({
           onClick={() => setIsLightboxOpen(true)}
         >
           <img
-            src={currentSlide.image}
+            src={assetUrl(currentSlide.image)}
             alt={currentSlide.alt}
             className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700 ease-out"
           />
@@ -279,7 +280,7 @@ export default function CampusPhotoSlider({
                   title={`View ${s.title}`}
                 >
                   <img
-                    src={s.image}
+                    src={assetUrl(s.image)}
                     alt={s.title}
                     className="w-full h-full object-cover"
                   />
@@ -340,7 +341,7 @@ export default function CampusPhotoSlider({
 
             <div className="relative flex items-center justify-center bg-slate-950 min-h-[300px] max-h-[70vh] overflow-hidden">
               <img
-                src={currentSlide.image}
+                src={assetUrl(currentSlide.image)}
                 alt={currentSlide.alt}
                 className="w-full h-full max-h-[70vh] object-contain"
               />

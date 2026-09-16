@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { AI_API } from '@/lib/api';
 import { Citation } from '@/types';
+import { assetUrl } from '@/lib/assets';
 
 interface SRECAssistantDrawerProps {
   isOpen: boolean;
@@ -113,7 +114,7 @@ export default function SRECAssistantDrawer({ isOpen, onClose }: SRECAssistantDr
           <div className="flex items-center gap-3">
             <div className="w-10 h-11 flex-shrink-0">
               <img
-                src="/images/srec_logo.png"
+                src={assetUrl('/images/srec_logo.png')}
                 alt="SREC Official Crest"
                 className="w-full h-full object-contain filter drop-shadow-sm"
               />

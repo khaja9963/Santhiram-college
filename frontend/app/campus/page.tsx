@@ -6,6 +6,7 @@ import {
   Building2, MapPin, Info, CheckCircle2,
   Compass, Eye, Layers, X, ArrowRight, BookOpen, Trophy, Coffee, Users
 } from 'lucide-react';
+import { assetUrl } from '@/lib/assets';
 
 interface CampusBuilding {
   id: string;
@@ -31,7 +32,7 @@ const CAMPUS_BUILDINGS: CampusBuilding[] = [
     facilities: ['Air-Conditioned Council Room', 'Student Affairs Desk', 'Central Palm Courtyard', 'High-Speed Wi-Fi'],
     floors: 4,
     position: { x: 50, y: 70 },
-    image: '/images/srec_real_campus.jpg',
+    image: assetUrl('/images/srec_real_campus.jpg'),
   },
   {
     id: 'cs-block',
@@ -76,7 +77,7 @@ const CAMPUS_BUILDINGS: CampusBuilding[] = [
     facilities: ['High-Performance GPU Clusters', 'Cybersecurity Sandbox', '24/7 Power Backup', 'Gigabit Fiber'],
     floors: 2,
     position: { x: 30, y: 25 },
-    image: '/images/computing_lab.jpg',
+    image: assetUrl('/images/computing_lab.jpg'),
   },
   {
     id: 'hostels',
@@ -259,7 +260,7 @@ export default function CampusMapPage() {
                   {selectedBuilding.image && (
                     <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-md group">
                       <img
-                        src={selectedBuilding.image}
+                        src={assetUrl(selectedBuilding.image)}
                         alt={selectedBuilding.name}
                         className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500"
                       />

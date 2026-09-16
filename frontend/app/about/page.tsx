@@ -5,6 +5,7 @@ import {
   Building, Users, Compass, BookOpen, ArrowRight, Camera
 } from 'lucide-react';
 import CampusPhotoSlider from '@/components/campus/CampusPhotoSlider';
+import { assetUrl } from '@/lib/assets';
 
 export const metadata = {
   title: 'About SREC | Santhiram Engineering College, Nandyal',
@@ -30,7 +31,7 @@ export default function AboutPage() {
           </div>
           <div className="w-24 h-28 sm:w-28 sm:h-32 shrink-0 flex items-center justify-center filter drop-shadow-xl bg-white/10 p-3 rounded-2xl border border-white/20 backdrop-blur-sm">
             <img
-              src="/images/srec_logo.png"
+              src={assetUrl('/images/srec_logo.png')}
               alt="SREC Official Crest"
               className="w-full h-full object-contain"
             />

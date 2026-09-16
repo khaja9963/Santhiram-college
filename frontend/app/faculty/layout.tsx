@@ -8,6 +8,7 @@ import {
   FileCheck2, BookOpen, Bell, LogOut, Menu, X, GraduationCap, ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { assetUrl } from '@/lib/assets';
 
 export default function FacultyLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -77,7 +78,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
           <Link href="/" className="flex items-center gap-3 px-2 py-1 group">
             <div className="w-9 h-10 flex-shrink-0 group-hover:scale-105 transition-transform">
               <img
-                src="/images/srec_logo.png"
+                src={assetUrl('/images/srec_logo.png')}
                 alt="SREC Official Crest"
                 className="w-full h-full object-contain filter drop-shadow-sm"
               />

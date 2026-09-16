@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { UserRole } from '@/types';
+import { assetUrl } from '@/lib/assets';
 
 function LoginForm() {
   const [identifier, setIdentifier] = useState('student@srec.local');
@@ -99,7 +100,7 @@ function LoginForm() {
         <div className="text-center space-y-3">
           <div className="w-20 h-20 mx-auto flex items-center justify-center p-1.5 bg-white rounded-2xl shadow-md border border-slate-100">
             <img
-              src="/images/srec_logo.png"
+              src={assetUrl('/images/srec_logo.png')}
               alt="SREC Official Crest"
               className="w-full h-full object-contain"
             />
