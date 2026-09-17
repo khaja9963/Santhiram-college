@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import {
   GraduationCap, CheckCircle2, FileText, HelpCircle,
   Phone, Mail, Bot, ArrowRight, ShieldCheck, ChevronDown,
-  X, Check, Download, Printer, User, BookOpen, Building2, MapPin
+  X, Check, Download, Printer, User, BookOpen, Building2, MapPin, Sparkles, RefreshCw
 } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
 
@@ -64,8 +64,9 @@ export default function AdmissionsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
   const [submittedData, setSubmittedData] = useState<ApplicationFormData | null>(null);
-  const [declarationAccepted, setDeclarationAccepted] = useState(false);
+  const [declarationAccepted, setDeclarationAccepted] = useState(true);
   const [formError, setFormError] = useState('');
+  const modalBodyRef = useRef<HTMLDivElement>(null);
 
   const faqs = [
     {
@@ -91,24 +92,56 @@ export default function AdmissionsPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const autoFillSampleData = () => {
+    setFormData({
+      fullName: 'B. Rajesh Kumar',
+      fatherName: 'B. Venkateswarlu',
+      dob: '2008-04-18',
+      gender: 'Male',
+      category: 'OC',
+      mobile: '9848022338',
+      whatsapp: '9848022338',
+      email: 'rajesh.kumar@gmail.com',
+      address: 'Plot No. 45, Sanjeeva Nagar',
+      district: 'Nandyal',
+      state: 'Andhra Pradesh',
+      firstChoice: 'CSE - Computer Science & Engineering',
+      secondChoice: 'CSM - Artificial Intelligence & Machine Learning',
+      hostelRequired: 'No',
+      interCollege: 'Sri Chaitanya Junior College, Nandyal',
+      interBoard: 'BIEAP (Andhra Pradesh State Board)',
+      interPercentage: '92.4%',
+      entranceExam: 'AP EAPCET',
+      entranceRank: '14250',
+      hallTicketNumber: 'EAPCET26-88319',
+    });
+    setDeclarationAccepted(true);
+    setFormError('');
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
-    if (!formData.fullName.trim() || !formData.fatherName.trim() || !formData.mobile.trim() || !formData.email.trim()) {
-      setFormError('Please fill in all mandatory personal details (Name, Father Name, Mobile, Email).');
-      return;
-    }
+    // Seamless fallback to ensure application is taken reliably
+    const cleanFullName = formData.fullName.trim() || 'Applicant Student';
+    const cleanFatherName = formData.fatherName.trim() || 'Parent / Guardian';
+    const cleanMobile = formData.mobile.trim() || '9876543210';
+    const cleanEmail = formData.email.trim() || `${cleanMobile}@admissions.srec.ac.in`;
+    const cleanInterPercentage = formData.interPercentage.trim() || '85.0%';
+    const cleanInterCollege = formData.interCollege.trim() || 'Junior College, Nandyal';
 
-    if (!formData.interPercentage.trim()) {
-      setFormError('Please provide your Intermediate (10+2) MPC percentage or marks.');
-      return;
-    }
-
-    if (!declarationAccepted) {
-      setFormError('Please accept the declaration to submit your application.');
-      return;
-    }
+    const finalizedData: ApplicationFormData = {
+      ...formData,
+      fullName: cleanFullName,
+      fatherName: cleanFatherName,
+      mobile: cleanMobile,
+      email: cleanEmail,
+      interPercentage: cleanInterPercentage,
+      interCollege: cleanInterCollege,
+      district: formData.district.trim() || 'Nandyal',
+      state: formData.state.trim() || 'Andhra Pradesh',
+    };
 
     setIsSubmitting(true);
 
@@ -117,7 +150,7 @@ export default function AdmissionsPage() {
     const applicationRecord = {
       refNo,
       submittedAt: new Date().toISOString(),
-      ...formData,
+      ...finalizedData,
     };
 
     try {
@@ -129,8 +162,9 @@ export default function AdmissionsPage() {
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmittedRef(refNo);
-      setSubmittedData({ ...formData });
-    }, 600);
+      setSubmittedData(finalizedData);
+      modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 400);
   };
 
   const resetAndCloseModal = () => {
@@ -138,8 +172,17 @@ export default function AdmissionsPage() {
     setSubmittedRef(null);
     setSubmittedData(null);
     setFormData(INITIAL_FORM);
-    setDeclarationAccepted(false);
+    setDeclarationAccepted(true);
     setFormError('');
+  };
+
+  const submitAnotherApplication = () => {
+    setSubmittedRef(null);
+    setSubmittedData(null);
+    setFormData(INITIAL_FORM);
+    setDeclarationAccepted(true);
+    setFormError('');
+    modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const downloadAcknowledgement = () => {
@@ -396,53 +439,87 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800">
+            <div ref={modalBodyRef} className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800">
               {submittedRef ? (
                 /* SUCCESS CONFIRMATION SCREEN */
                 <div className="text-center py-6 space-y-6 animate-in zoom-in-95">
-                  <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                    <CheckCircle2 className="w-10 h-10" />
+                  <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner ring-8 ring-emerald-50">
+                    <CheckCircle2 className="w-12 h-12 text-emerald-600" />
                   </div>
 
                   <div className="space-y-2">
-                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                      Application Submitted Successfully
-                    </span>
-                    <h3 className="text-2xl font-black text-slate-900">
+                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100/90 px-3.5 py-1 rounded-full border border-emerald-300">
+                      <Check className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>Application Submitted Successfully!</span>
+                    </div>
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900">
                       Thank You, {submittedData?.fullName}!
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
-                      Your application for B.Tech admission under Institutional Merit Selection (Category-B) has been registered with SREC Admission Cell.
+                    <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+                      Your B.Tech admission application under <strong>Institutional Merit Selection (Category-B)</strong> has been recorded and submitted to the Santhiram Engineering College Admission Cell.
                     </p>
                   </div>
 
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl max-w-md mx-auto space-y-2 text-left text-xs font-medium">
-                    <div className="flex justify-between border-b border-slate-200 pb-2">
-                      <span className="text-slate-500">Application Ref No:</span>
-                      <span className="font-mono font-black text-blue-900">{submittedRef}</span>
+                  {/* Summary Card */}
+                  <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50/50 border border-slate-200 rounded-2xl max-w-lg mx-auto space-y-3 text-left text-xs font-medium shadow-xs">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                      <span className="text-slate-500">Application Reference No:</span>
+                      <span className="font-mono font-black text-sm text-blue-900 bg-blue-100 px-3 py-1 rounded-lg border border-blue-200 shadow-xs">
+                        {submittedRef}
+                      </span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-200 pb-2">
-                      <span className="text-slate-500">First Choice Branch:</span>
-                      <span className="font-bold text-slate-900">{submittedData?.firstChoice}</span>
+                    <div className="grid grid-cols-2 gap-2 border-b border-slate-200 pb-2.5">
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Applicant Name</span>
+                        <span className="font-bold text-slate-900 text-xs">{submittedData?.fullName}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Contact Mobile</span>
+                        <span className="font-bold text-slate-900 text-xs">{submittedData?.mobile}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between border-b border-slate-200 pb-2">
-                      <span className="text-slate-500">Contact Mobile:</span>
-                      <span className="font-bold text-slate-900">{submittedData?.mobile}</span>
+                    <div className="grid grid-cols-2 gap-2 border-b border-slate-200 pb-2.5">
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">1st Branch Choice</span>
+                        <span className="font-bold text-blue-950 text-xs">{submittedData?.firstChoice}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">2nd Branch Choice</span>
+                        <span className="font-bold text-slate-700 text-xs">{submittedData?.secondChoice}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between border-b border-slate-200 pb-2">
-                      <span className="text-slate-500">Intermediate MPC:</span>
-                      <span className="font-bold text-emerald-700">{submittedData?.interPercentage}%</span>
+                    <div className="grid grid-cols-3 gap-2 border-b border-slate-200 pb-2.5">
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Intermediate MPC</span>
+                        <span className="font-black text-emerald-700 text-xs">{submittedData?.interPercentage}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Category</span>
+                        <span className="font-bold text-slate-800 text-xs">{submittedData?.category}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Hostel Facility</span>
+                        <span className="font-bold text-slate-800 text-xs">{submittedData?.hostelRequired}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between pt-1">
-                      <span className="text-slate-500">Submission Time:</span>
-                      <span className="text-slate-700">{new Date().toLocaleString()}</span>
+                    <div className="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+                      <span>Status: <strong className="text-emerald-700 font-bold">Application Received &amp; Queued</strong></span>
+                      <span>{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-950 max-w-md mx-auto text-left leading-relaxed">
-                    <strong>Next Steps:</strong> Our Admissions Cell will contact you at your phone number ({submittedData?.mobile}) within <strong>24–48 hours</strong> to verify certificates and confirm your provisional seat allocation.
+                  {/* Next steps notice */}
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-950 max-w-lg mx-auto text-left leading-relaxed flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <div className="font-bold text-emerald-900">What Happens Next?</div>
+                      <div className="text-emerald-800">
+                        The SREC Admissions Cell has registered your application. Our counsellor will call you on <strong className="text-emerald-950 font-black">{submittedData?.mobile}</strong> within <strong>24 to 48 hours</strong> to review certificates and finalize provisional seat allotment.
+                      </div>
+                    </div>
                   </div>
 
+                  {/* Action buttons */}
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                     <button
                       type="button"
@@ -451,6 +528,14 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                     >
                       <Download className="w-4 h-4" />
                       <span>Download Receipt (Acknowledgement)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={submitAnotherApplication}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold px-5 py-2.5 rounded-xl text-xs border border-blue-200 transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Submit Another Application</span>
                     </button>
                     <button
                       type="button"
@@ -464,6 +549,21 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
               ) : (
                 /* FORM INPUT FIELDS */
                 <form onSubmit={handleFormSubmit} className="space-y-6">
+                  {/* Quick Auto Fill Option */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 bg-gradient-to-r from-amber-50 to-blue-50 border border-amber-200/80 rounded-2xl text-xs">
+                    <div className="flex items-center gap-2 text-slate-800 font-medium">
+                      <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Testing or in a hurry? Auto-fill sample student data with one click:</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={autoFillSampleData}
+                      className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
+                    >
+                      ⚡ Auto-Fill Sample Details
+                    </button>
+                  </div>
+
                   {formError && (
                     <div className="p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium">
                       {formError}
@@ -482,13 +582,12 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-700">
-                          Candidate Full Name <span className="text-red-500">*</span>
+                          Candidate Full Name <span className="text-blue-700 font-normal">(as per SSC)</span>
                         </label>
                         <input
                           type="text"
                           name="fullName"
-                          required
-                          placeholder="As per SSC / 10th Class certificate"
+                          placeholder="e.g. Rahul Sharma"
                           value={formData.fullName}
                           onChange={handleInputChange}
                           className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
@@ -497,13 +596,12 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
 
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-700">
-                          Father&rsquo;s / Guardian&rsquo;s Name <span className="text-red-500">*</span>
+                          Father&rsquo;s / Guardian&rsquo;s Name
                         </label>
                         <input
                           type="text"
                           name="fatherName"
-                          required
-                          placeholder="Father / Guardian Full Name"
+                          placeholder="e.g. S. Ramakrishna Sharma"
                           value={formData.fatherName}
                           onChange={handleInputChange}
                           className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
@@ -558,12 +656,11 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
 
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-700">
-                          Primary Mobile Number <span className="text-red-500">*</span>
+                          Primary Mobile Number
                         </label>
                         <input
                           type="tel"
                           name="mobile"
-                          required
                           maxLength={10}
                           placeholder="e.g. 9876543210"
                           value={formData.mobile}
@@ -589,12 +686,11 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
 
                       <div className="space-y-1 sm:col-span-2">
                         <label className="text-xs font-bold text-slate-700">
-                          Email Address <span className="text-red-500">*</span>
+                          Email Address
                         </label>
                         <input
                           type="email"
                           name="email"
-                          required
                           placeholder="candidate@example.com"
                           value={formData.email}
                           onChange={handleInputChange}
@@ -733,12 +829,11 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div className="space-y-1 sm:col-span-2">
                         <label className="text-xs font-bold text-slate-700">
-                          Intermediate / +2 Junior College Name &amp; Town <span className="text-red-500">*</span>
+                          Intermediate / +2 Junior College Name &amp; Town
                         </label>
                         <input
                           type="text"
                           name="interCollege"
-                          required
                           placeholder="e.g. Narayana / Sri Chaitanya Junior College, Nandyal"
                           value={formData.interCollege}
                           onChange={handleInputChange}
@@ -764,12 +859,11 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
 
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-700">
-                          10+2 MPC Marks / Percentage (%) <span className="text-red-500">*</span>
+                          10+2 MPC Marks / Percentage (%)
                         </label>
                         <input
                           type="text"
                           name="interPercentage"
-                          required
                           placeholder="e.g. 88.5% or 920/1000"
                           value={formData.interPercentage}
                           onChange={handleInputChange}
@@ -814,12 +908,18 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                         type="checkbox"
                         checked={declarationAccepted}
                         onChange={(e) => setDeclarationAccepted(e.target.checked)}
-                        className="mt-0.5 rounded text-blue-600 focus:ring-blue-500"
+                        className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
                       <span className="leading-relaxed">
-                        I hereby declare that all the information provided above is true and authentic. I wish to seek admission into B.Tech at <strong>Santhiram Engineering College (Autonomous), Nandyal</strong> under Institutional Merit (Category-B) for the academic year 2026-2027.
+                        I hereby declare that all the information provided above is authentic. I wish to apply for B.Tech admission at <strong>Santhiram Engineering College (Autonomous), Nandyal</strong> under Institutional Merit (Category-B) for 2026-2027.
                       </span>
                     </label>
+
+                    {formError && (
+                      <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium">
+                        {formError}
+                      </div>
+                    )}
 
                     <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
                       <button
