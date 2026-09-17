@@ -4,11 +4,68 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   GraduationCap, CheckCircle2, FileText, HelpCircle,
-  Phone, Mail, Bot, ArrowRight, ShieldCheck, ChevronDown
+  Phone, Mail, Bot, ArrowRight, ShieldCheck, ChevronDown,
+  X, Check, Download, Printer, User, BookOpen, Building2, MapPin
 } from 'lucide-react';
+import { assetUrl } from '@/lib/assets';
+
+interface ApplicationFormData {
+  fullName: string;
+  fatherName: string;
+  dob: string;
+  gender: string;
+  category: string;
+  mobile: string;
+  whatsapp: string;
+  email: string;
+  address: string;
+  district: string;
+  state: string;
+  firstChoice: string;
+  secondChoice: string;
+  hostelRequired: string;
+  interCollege: string;
+  interBoard: string;
+  interPercentage: string;
+  entranceExam: string;
+  entranceRank: string;
+  hallTicketNumber: string;
+}
+
+const INITIAL_FORM: ApplicationFormData = {
+  fullName: '',
+  fatherName: '',
+  dob: '',
+  gender: 'Male',
+  category: 'OC',
+  mobile: '',
+  whatsapp: '',
+  email: '',
+  address: '',
+  district: 'Nandyal',
+  state: 'Andhra Pradesh',
+  firstChoice: 'CSE - Computer Science & Engineering',
+  secondChoice: 'CSM - Artificial Intelligence & Machine Learning',
+  hostelRequired: 'No',
+  interCollege: '',
+  interBoard: 'BIEAP (Andhra Pradesh State Board)',
+  interPercentage: '',
+  entranceExam: 'AP EAPCET',
+  entranceRank: '',
+  hallTicketNumber: '',
+};
 
 export default function AdmissionsPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  // Application Modal state
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [formData, setFormData] = useState<ApplicationFormData>(INITIAL_FORM);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedRef, setSubmittedRef] = useState<string | null>(null);
+  const [submittedData, setSubmittedData] = useState<ApplicationFormData | null>(null);
+  const [declarationAccepted, setDeclarationAccepted] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const faqs = [
     {
@@ -29,6 +86,126 @@ export default function AdmissionsPage() {
     },
   ];
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+
+    if (!formData.fullName.trim() || !formData.fatherName.trim() || !formData.mobile.trim() || !formData.email.trim()) {
+      setFormError('Please fill in all mandatory personal details (Name, Father Name, Mobile, Email).');
+      return;
+    }
+
+    if (!formData.interPercentage.trim()) {
+      setFormError('Please provide your Intermediate (10+2) MPC percentage or marks.');
+      return;
+    }
+
+    if (!declarationAccepted) {
+      setFormError('Please accept the declaration to submit your application.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const refNo = `SREC-BTECH-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+
+    const applicationRecord = {
+      refNo,
+      submittedAt: new Date().toISOString(),
+      ...formData,
+    };
+
+    try {
+      const existingRaw = localStorage.getItem('srec_btech_applications');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      localStorage.setItem('srec_btech_applications', JSON.stringify([applicationRecord, ...existing]));
+    } catch {}
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setSubmittedRef(refNo);
+      setSubmittedData({ ...formData });
+    }, 600);
+  };
+
+  const resetAndCloseModal = () => {
+    setIsApplyModalOpen(false);
+    setSubmittedRef(null);
+    setSubmittedData(null);
+    setFormData(INITIAL_FORM);
+    setDeclarationAccepted(false);
+    setFormError('');
+  };
+
+  const downloadAcknowledgement = () => {
+    if (!submittedData || !submittedRef) return;
+
+    const receipt = `===============================================================
+SANTHIRAM ENGINEERING COLLEGE (AUTONOMOUS) - NANDYAL
+Approved by AICTE, New Delhi | Affiliated to JNTUA, Ananthapuramu
+Accredited by NAAC 'A' Grade & NBA
+===============================================================
+B.TECH ADMISSION APPLICATION ACKNOWLEDGEMENT (2026-2027)
+Category - B (Institutional Merit / Management Quota)
+===============================================================
+
+Application Reference No : ${submittedRef}
+Submission Date & Time   : ${new Date().toLocaleString()}
+
+1. CANDIDATE PARTICULARS
+---------------------------------------------------------------
+Full Name                : ${submittedData.fullName}
+Father / Guardian Name   : ${submittedData.fatherName}
+Date of Birth            : ${submittedData.dob || 'Not specified'}
+Gender                   : ${submittedData.gender}
+Category / Community     : ${submittedData.category}
+Contact Mobile           : ${submittedData.mobile}
+WhatsApp Number          : ${submittedData.whatsapp || submittedData.mobile}
+Email Address            : ${submittedData.email}
+Address                  : ${submittedData.address}
+District & State         : ${submittedData.district}, ${submittedData.state}
+
+2. PROGRAMME & BRANCH PREFERENCES
+---------------------------------------------------------------
+1st Choice (Preferred)   : ${submittedData.firstChoice}
+2nd Choice (Alternative) : ${submittedData.secondChoice}
+Campus Hostel Required   : ${submittedData.hostelRequired}
+
+3. QUALIFYING EXAM & ACADEMIC MERIT
+---------------------------------------------------------------
+Intermediate College     : ${submittedData.interCollege}
+Board of Examination     : ${submittedData.interBoard}
+Intermediate MPC %       : ${submittedData.interPercentage}%
+Entrance Exam            : ${submittedData.entranceExam}
+Entrance Rank            : ${submittedData.entranceRank || 'Direct Merit Application'}
+Hall Ticket Number       : ${submittedData.hallTicketNumber || 'N/A'}
+
+===============================================================
+IMPORTANT INSTRUCTIONS FOR APPLICANT:
+1. Please preserve this Application Reference Number for all future correspondence.
+2. The SREC Admissions Committee will review your application and contact you within 24 to 48 hours for document verification.
+3. For immediate assistance, contact the SREC Admissions Helpdesk:
+   Phone: +91 8514 275301 / 275302
+   Email: admissions@srecnandyal.edu.in
+   Campus: NH-40, Nandyal - 518501, Andhra Pradesh.
+===============================================================`;
+
+    const blob = new Blob([receipt], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${submittedRef}_Acknowledgement.txt`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-16 pb-20">
       {/* Header Banner */}
@@ -38,7 +215,7 @@ export default function AdmissionsPage() {
             Admissions 2026-27 &bull; EAPCET Code: SREC
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight">
-            Admissions & Eligibility Criteria
+            Admissions &amp; Eligibility Criteria
           </h1>
           <p className="text-base sm:text-lg text-slate-300 max-w-3xl">
             Join an autonomous engineering college recognized for excellence in innovation, industry-driven curriculum, and high-impact campus placements.
@@ -50,50 +227,79 @@ export default function AdmissionsPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Category A */}
-          <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs font-black bg-blue-100 text-blue-900 px-3 py-1 rounded-md">
-                Category - A (70% Seats)
-              </span>
-              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded">
-                Convener Quota
-              </span>
+          <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs font-black bg-blue-100 text-blue-900 px-3 py-1 rounded-md">
+                  Category - A (70% Seats)
+                </span>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded">
+                  Convener Quota
+                </span>
+              </div>
+              <h3 className="text-xl font-black text-slate-900">AP EAPCET State Counselling</h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                Admissions are conducted through centralized web counselling by APSCHE based on merit rank secured in AP EAPCET.
+              </p>
+              <div className="space-y-2 text-xs text-slate-700">
+                <div className="font-bold text-slate-900">Eligibility:</div>
+                <ul className="space-y-1.5 list-disc pl-5">
+                  <li>Passed 10+2 with Mathematics, Physics, and Chemistry (MPC).</li>
+                  <li>Minimum 45% aggregate in group subjects (40% for SC/ST/BC categories).</li>
+                  <li>Qualified rank in AP EAPCET examination.</li>
+                </ul>
+              </div>
             </div>
-            <h3 className="text-xl font-black text-slate-900">AP EAPCET State Counselling</h3>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Admissions are conducted through centralized web counselling by APSCHE based on merit rank secured in AP EAPCET.
-            </p>
-            <div className="space-y-2 text-xs text-slate-700">
-              <div className="font-bold text-slate-900">Eligibility:</div>
-              <ul className="space-y-1.5 list-disc pl-5">
-                <li>Passed 10+2 with Mathematics, Physics, and Chemistry (MPC).</li>
-                <li>Minimum 45% aggregate in group subjects (40% for SC/ST/BC categories).</li>
-                <li>Qualified rank in AP EAPCET examination.</li>
-              </ul>
+
+            <div className="pt-4 border-t border-slate-100">
+              <div className="text-xs text-slate-500 font-medium">
+                Counselling Code: <strong className="font-mono text-blue-900 font-black">SREC</strong> &bull; Centralized Web Counselling
+              </div>
             </div>
           </div>
 
-          {/* Category B */}
-          <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs font-black bg-amber-100 text-amber-900 px-3 py-1 rounded-md">
-                Category - B (30% Seats)
-              </span>
-              <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded">
-                Management / NRI Quota
-              </span>
+          {/* Category B - Institutional Merit Selection */}
+          <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-400 to-amber-500 text-slate-950 text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider shadow-xs">
+              Admissions Open 2026-27
             </div>
-            <h3 className="text-xl font-black text-slate-900">Institutional Merit Selection</h3>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Admissions are conducted directly by the college management strictly following APSCHE guidelines and merit rankings.
-            </p>
-            <div className="space-y-2 text-xs text-slate-700">
-              <div className="font-bold text-slate-900">Eligibility:</div>
-              <ul className="space-y-1.5 list-disc pl-5">
-                <li>Candidates with qualified JEE (Mains) or AP EAPCET rank.</li>
-                <li>Candidates with minimum 50% marks in intermediate (10+2) MPC subjects.</li>
-                <li>Applications invited directly through official SREC notification.</li>
-              </ul>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs font-black bg-amber-100 text-amber-900 px-3 py-1 rounded-md">
+                  Category - B (30% Seats)
+                </span>
+                <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded">
+                  Management / NRI Quota
+                </span>
+              </div>
+              <h3 className="text-xl font-black text-slate-900">Institutional Merit Selection</h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                Admissions are conducted directly by the college management strictly following APSCHE guidelines and merit rankings.
+              </p>
+              <div className="space-y-2 text-xs text-slate-700">
+                <div className="font-bold text-slate-900">Eligibility:</div>
+                <ul className="space-y-1.5 list-disc pl-5">
+                  <li>Candidates with qualified JEE (Mains) or AP EAPCET rank.</li>
+                  <li>Candidates with minimum 50% marks in intermediate (10+2) MPC subjects.</li>
+                  <li>Direct institutional admission through online merit registration.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Apply Now Button under Institutional Merit Selection */}
+            <div className="pt-4 border-t border-slate-100 space-y-2">
+              <button
+                type="button"
+                onClick={() => setIsApplyModalOpen(true)}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black px-6 py-3 rounded-xl text-sm shadow-sm hover:shadow-md transition-all active:scale-98 cursor-pointer"
+              >
+                <span>Apply Now (B.Tech 2026-27)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <div className="text-center text-[11px] text-slate-500">
+                Instant online registration for Category-B institutional merit seats
+              </div>
             </div>
           </div>
         </div>
@@ -145,7 +351,7 @@ export default function AdmissionsPage() {
               <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <button
                   onClick={() => setActiveFaq(isOpen ? null : i)}
-                  className="w-full text-left p-4 flex items-center justify-between font-bold text-slate-900 text-sm hover:bg-slate-50 transition-colors"
+                  className="w-full text-left p-4 flex items-center justify-between font-bold text-slate-900 text-sm hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   <span>{faq.q}</span>
                   <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -160,6 +366,492 @@ export default function AdmissionsPage() {
           })}
         </div>
       </section>
+
+      {/* B.TECH APPLICATION MODAL */}
+      {isApplyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#0B2545] to-blue-900 text-white p-5 sm:p-6 flex items-start justify-between gap-4 shrink-0">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  B.Tech Admissions 2026-27 &bull; Category-B Merit
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black">
+                  Online Admission Application Form
+                </h2>
+                <p className="text-xs text-slate-300">
+                  Santhiram Engineering College (Autonomous), Nandyal &bull; EAPCET Code: SREC
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={resetAndCloseModal}
+                className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors cursor-pointer shrink-0"
+                title="Close Application"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800">
+              {submittedRef ? (
+                /* SUCCESS CONFIRMATION SCREEN */
+                <div className="text-center py-6 space-y-6 animate-in zoom-in-95">
+                  <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                    <CheckCircle2 className="w-10 h-10" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                      Application Submitted Successfully
+                    </span>
+                    <h3 className="text-2xl font-black text-slate-900">
+                      Thank You, {submittedData?.fullName}!
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
+                      Your application for B.Tech admission under Institutional Merit Selection (Category-B) has been registered with SREC Admission Cell.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl max-w-md mx-auto space-y-2 text-left text-xs font-medium">
+                    <div className="flex justify-between border-b border-slate-200 pb-2">
+                      <span className="text-slate-500">Application Ref No:</span>
+                      <span className="font-mono font-black text-blue-900">{submittedRef}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-2">
+                      <span className="text-slate-500">First Choice Branch:</span>
+                      <span className="font-bold text-slate-900">{submittedData?.firstChoice}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-2">
+                      <span className="text-slate-500">Contact Mobile:</span>
+                      <span className="font-bold text-slate-900">{submittedData?.mobile}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-2">
+                      <span className="text-slate-500">Intermediate MPC:</span>
+                      <span className="font-bold text-emerald-700">{submittedData?.interPercentage}%</span>
+                    </div>
+                    <div className="flex justify-between pt-1">
+                      <span className="text-slate-500">Submission Time:</span>
+                      <span className="text-slate-700">{new Date().toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-950 max-w-md mx-auto text-left leading-relaxed">
+                    <strong>Next Steps:</strong> Our Admissions Cell will contact you at your phone number ({submittedData?.mobile}) within <strong>24–48 hours</strong> to verify certificates and confirm your provisional seat allocation.
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={downloadAcknowledgement}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-2.5 rounded-xl text-xs shadow-sm transition-colors cursor-pointer"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download Receipt (Acknowledgement)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetAndCloseModal}
+                      className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
+                    >
+                      Close Window
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* FORM INPUT FIELDS */
+                <form onSubmit={handleFormSubmit} className="space-y-6">
+                  {formError && (
+                    <div className="p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium">
+                      {formError}
+                    </div>
+                  )}
+
+                  {/* Section 1: Candidate Personal Details */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
+                      <User className="w-4 h-4 text-blue-700" />
+                      <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider">
+                        1. Personal Particulars
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">
+                          Candidate Full Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="fullName"
+                          required
+                          placeholder="As per SSC / 10th Class certificate"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">
+                          Father&rsquo;s / Guardian&rsquo;s Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="fatherName"
+                          required
+                          placeholder="Father / Guardian Full Name"
+                          value={formData.fatherName}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">Date of Birth</label>
+                        <input
+                          type="date"
+                          name="dob"
+                          value={formData.dob}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700">Gender</label>
+                          <select
+                            name="gender"
+                            value={formData.gender}
+                            onChange={handleInputChange}
+                            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium"
+                          >
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700">Category</label>
+                          <select
+                            name="category"
+                            value={formData.category}
+                            onChange={handleInputChange}
+                            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium"
+                          >
+                            <option value="OC">OC</option>
+                            <option value="BC-A">BC-A</option>
+                            <option value="BC-B">BC-B</option>
+                            <option value="BC-C">BC-C</option>
+                            <option value="BC-D">BC-D</option>
+                            <option value="BC-E">BC-E</option>
+                            <option value="SC">SC</option>
+                            <option value="ST">ST</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">
+                          Primary Mobile Number <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          name="mobile"
+                          required
+                          maxLength={10}
+                          placeholder="e.g. 9876543210"
+                          value={formData.mobile}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">
+                          WhatsApp Mobile Number
+                        </label>
+                        <input
+                          type="tel"
+                          name="whatsapp"
+                          maxLength={10}
+                          placeholder="e.g. 9876543210"
+                          value={formData.whatsapp}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1 sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">
+                          Email Address <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          required
+                          placeholder="candidate@example.com"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1 sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">
+                          Permanent Residential Address
+                        </label>
+                        <input
+                          type="text"
+                          name="address"
+                          placeholder="Door No, Street, Village/Town"
+                          value={formData.address}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">District</label>
+                        <input
+                          type="text"
+                          name="district"
+                          placeholder="e.g. Nandyal, Kurnool, Kadapa"
+                          value={formData.district}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">State</label>
+                        <input
+                          type="text"
+                          name="state"
+                          value={formData.state}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Branch Preferences */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
+                      <BookOpen className="w-4 h-4 text-amber-600" />
+                      <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider">
+                        2. B.Tech Branch Preferences
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">
+                          1st Branch Preference <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          name="firstChoice"
+                          value={formData.firstChoice}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium"
+                        >
+                          <option value="CSE - Computer Science & Engineering">CSE - Computer Science &amp; Engineering</option>
+                          <option value="CSM - Artificial Intelligence & Machine Learning">CSM - Artificial Intelligence &amp; ML</option>
+                          <option value="CSD - Data Science">CSD - Data Science</option>
+                          <option value="ECE - Electronics & Communication Engineering">ECE - Electronics &amp; Communication</option>
+                          <option value="EEE - Electrical & Electronics Engineering">EEE - Electrical &amp; Electronics</option>
+                          <option value="ME - Mechanical Engineering">ME - Mechanical Engineering</option>
+                          <option value="CE - Civil Engineering">CE - Civil Engineering</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">
+                          2nd Branch Preference
+                        </label>
+                        <select
+                          name="secondChoice"
+                          value={formData.secondChoice}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium"
+                        >
+                          <option value="CSM - Artificial Intelligence & Machine Learning">CSM - Artificial Intelligence &amp; ML</option>
+                          <option value="CSE - Computer Science & Engineering">CSE - Computer Science &amp; Engineering</option>
+                          <option value="CSD - Data Science">CSD - Data Science</option>
+                          <option value="ECE - Electronics & Communication Engineering">ECE - Electronics &amp; Communication</option>
+                          <option value="EEE - Electrical & Electronics Engineering">EEE - Electrical &amp; Electronics</option>
+                          <option value="ME - Mechanical Engineering">ME - Mechanical Engineering</option>
+                          <option value="CE - Civil Engineering">CE - Civil Engineering</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1 sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">
+                          Do you require SREC Campus Hostel Accommodation?
+                        </label>
+                        <div className="flex items-center gap-6 pt-1">
+                          <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+                            <input
+                              type="radio"
+                              name="hostelRequired"
+                              value="Yes"
+                              checked={formData.hostelRequired === 'Yes'}
+                              onChange={handleInputChange}
+                            />
+                            <span>Yes, Campus Hostel Required (Separate Boys &amp; Girls)</span>
+                          </label>
+                          <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+                            <input
+                              type="radio"
+                              name="hostelRequired"
+                              value="No"
+                              checked={formData.hostelRequired === 'No'}
+                              onChange={handleInputChange}
+                            />
+                            <span>No, Day Scholar (College Bus Transport)</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Academic Qualifications & Entrance */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
+                      <GraduationCap className="w-4 h-4 text-emerald-700" />
+                      <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider">
+                        3. Qualifying Examination &amp; Merit
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1 sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">
+                          Intermediate / +2 Junior College Name &amp; Town <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="interCollege"
+                          required
+                          placeholder="e.g. Narayana / Sri Chaitanya Junior College, Nandyal"
+                          value={formData.interCollege}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">Intermediate Board</label>
+                        <select
+                          name="interBoard"
+                          value={formData.interBoard}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium"
+                        >
+                          <option value="BIEAP (Andhra Pradesh State Board)">BIEAP (Andhra Pradesh)</option>
+                          <option value="TSBIE (Telangana State Board)">TSBIE (Telangana)</option>
+                          <option value="CBSE (Central Board)">CBSE (Class XII)</option>
+                          <option value="ICSE / ISC">ICSE / ISC</option>
+                          <option value="Other Recognized State Board">Other Recognized Board</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">
+                          10+2 MPC Marks / Percentage (%) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="interPercentage"
+                          required
+                          placeholder="e.g. 88.5% or 920/1000"
+                          value={formData.interPercentage}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">Competitive Entrance Exam</label>
+                        <select
+                          name="entranceExam"
+                          value={formData.entranceExam}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium"
+                        >
+                          <option value="AP EAPCET">AP EAPCET 2026</option>
+                          <option value="JEE Mains">JEE (Mains) 2026</option>
+                          <option value="Direct Intermediate Merit">Direct Inter Marks Merit</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-700">
+                          Entrance Rank (if qualified)
+                        </label>
+                        <input
+                          type="text"
+                          name="entranceRank"
+                          placeholder="e.g. 24810 or Awaiting Results"
+                          value={formData.entranceRank}
+                          onChange={handleInputChange}
+                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Declaration & Submission */}
+                  <div className="pt-3 border-t border-slate-200 space-y-4">
+                    <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={declarationAccepted}
+                        onChange={(e) => setDeclarationAccepted(e.target.checked)}
+                        className="mt-0.5 rounded text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="leading-relaxed">
+                        I hereby declare that all the information provided above is true and authentic. I wish to seek admission into B.Tech at <strong>Santhiram Engineering College (Autonomous), Nandyal</strong> under Institutional Merit (Category-B) for the academic year 2026-2027.
+                      </span>
+                    </label>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={resetAndCloseModal}
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-blue-700 to-[#0B2545] hover:from-blue-800 hover:to-blue-950 text-white font-bold px-7 py-2.5 rounded-xl text-xs shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-75"
+                      >
+                        {isSubmitting ? (
+                          <span>Submitting Application...</span>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" />
+                            <span>Submit B.Tech Application</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
