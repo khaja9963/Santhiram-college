@@ -342,6 +342,52 @@ class RAGEngine:
                 "relevance_snippet": doc["content"][:180].strip() + "..."
             })
 
+        # Try OpenAI if configured
+        if settings.OPENAI_API_KEY:
+            try:
+                import urllib.request
+                context_text = "\n\n---\n\n".join([f"Document: {d['doc_title']} (Page {d['page']})\n{d['content']}" for d in relevant_docs])
+                prompt = (
+                    f"You are the SREC Smart Campus AI Assistant for Santhiram Engineering College (Autonomous), Nandyal.\n"
+                    f"Answer the following user question accurately, helpfully, and comprehensively using ONLY the provided verified college context.\n"
+                    f"Formatting: Use clean Markdown with bullet points where appropriate. Do not make up facts outside the context.\n\n"
+                    f"Context:\n{context_text}\n\n"
+                    f"Question: {q_clean}\n\n"
+                    f"Answer:"
+                )
+
+                req_data = json.dumps({
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "system", "content": "You are the official SREC Smart Campus AI Assistant. Answer questions based only on verified institutional documents."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.2,
+                    "max_tokens": 800
+                }).encode('utf-8')
+
+                req = urllib.request.Request(
+                    "https://api.openai.com/v1/chat/completions",
+                    data=req_data,
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}"
+                    }
+                )
+                with urllib.request.urlopen(req, timeout=6) as response:
+                    res_json = json.loads(response.read().decode('utf-8'))
+                    text = res_json['choices'][0]['message']['content']
+                    if text and len(text.strip()) > 20:
+                        return {
+                            "answer": text.strip(),
+                            "sources": sources,
+                            "is_grounded": True,
+                            "confidence": 0.99
+                        }
+            except Exception as e:
+                # Silently fallback
+                pass
+
         # Try Google Gemini if configured
         if settings.GEMINI_API_KEY:
             try:

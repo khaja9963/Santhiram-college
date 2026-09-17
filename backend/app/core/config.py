@@ -29,8 +29,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
 
     # AI Configuration
+    OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY", None)
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY", None)
-    LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-1.5-flash")
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "models/embedding-001")
 
     # Document upload directory
