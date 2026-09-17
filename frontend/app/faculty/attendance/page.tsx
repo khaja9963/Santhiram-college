@@ -19,16 +19,10 @@ export default function FacultyAttendancePage() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const hasAbsent = students.some((s) => s.status === 'ABSENT');
-
   const toggleStatus = (id: string, newStatus: string) => {
     setStudents((prev) =>
       prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
     );
-  };
-
-  const markAllPresent = () => {
-    setStudents((prev) => prev.map((s) => ({ ...s, status: 'PRESENT' })));
   };
 
   const exportToExcel = (
@@ -184,20 +178,12 @@ export default function FacultyAttendancePage() {
           </select>
         </div>
 
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={markAllPresent}
-            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition-colors"
-            title={hasAbsent ? "Click to set all students to Present" : "All students marked Present"}
-          >
-            {hasAbsent ? '---' : 'All Present'}
-          </button>
+        <div>
           <button
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-transform active:scale-95"
+            className="w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-transform active:scale-95 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Saving...' : 'Save'}</span>
@@ -269,7 +255,7 @@ export default function FacultyAttendancePage() {
                         }`}
                         title="Mark Present"
                       >
-                        {hasAbsent ? '---' : 'Present'}
+                        Present
                       </button>
                       <button
                         onClick={() => toggleStatus(s.id, 'ABSENT')}
