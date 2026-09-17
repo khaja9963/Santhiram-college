@@ -20,6 +20,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
     { label: 'Faculty Profile', href: '/profile', icon: GraduationCap },
     { label: 'Students Roster', href: '/faculty/students', icon: Users },
     { label: 'Mark Attendance', href: '/faculty/attendance', icon: CalendarCheck },
+    { label: 'All Candidates', href: '/faculty/candidates', icon: Users },
     { label: 'Upload Marks', href: '/faculty/marks', icon: BarChart3 },
     { label: 'Create Assignment', href: '/faculty/assignments', icon: FileCheck2 },
     { label: 'Security & Password', href: '/settings/security', icon: ShieldCheck },
