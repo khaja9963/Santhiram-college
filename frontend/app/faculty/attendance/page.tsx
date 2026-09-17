@@ -12,12 +12,14 @@ export default function FacultyAttendancePage() {
     { id: '1', roll: '22X51A0501', name: 'Sai Teja Reddy', status: 'PRESENT' },
     { id: '2', roll: '22X51A0502', name: 'B. Anusha', status: 'PRESENT' },
     { id: '3', roll: '22X51A0503', name: 'C. Harish', status: 'PRESENT' },
-    { id: '4', roll: '22X51A0504', name: 'D. Kalyan', status: 'ABSENT' },
+    { id: '4', roll: '22X51A0504', name: 'D. Kalyan', status: 'PRESENT' },
     { id: '5', roll: '22X51A0505', name: 'E. Meena', status: 'PRESENT' },
     { id: '6', roll: '22X51A0506', name: 'F. Nithin', status: 'PRESENT' },
   ]);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const hasAbsent = students.some((s) => s.status === 'ABSENT');
 
   const toggleStatus = (id: string, newStatus: string) => {
     setStudents((prev) =>
@@ -107,8 +109,9 @@ export default function FacultyAttendancePage() {
             type="button"
             onClick={markAllPresent}
             className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition-colors"
+            title={hasAbsent ? "Click to set all students to Present" : "All students marked Present"}
           >
-            All Present
+            {hasAbsent ? '---' : 'All Present'}
           </button>
           <button
             type="button"
@@ -160,8 +163,9 @@ export default function FacultyAttendancePage() {
                             ? 'bg-emerald-600 text-white shadow-xs'
                             : 'text-slate-600 hover:text-slate-900'
                         }`}
+                        title="Mark Present"
                       >
-                        Present
+                        {hasAbsent ? '---' : 'Present'}
                       </button>
                       <button
                         onClick={() => toggleStatus(s.id, 'ABSENT')}
@@ -170,18 +174,9 @@ export default function FacultyAttendancePage() {
                             ? 'bg-red-600 text-white shadow-xs'
                             : 'text-slate-600 hover:text-slate-900'
                         }`}
+                        title="Mark Absent"
                       >
                         Absent
-                      </button>
-                      <button
-                        onClick={() => toggleStatus(s.id, 'OD')}
-                        className={`px-3 py-1 rounded-lg font-bold text-[11px] transition-colors ${
-                          s.status === 'OD'
-                            ? 'bg-purple-600 text-white shadow-xs'
-                            : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        On Duty
                       </button>
                     </div>
                   </td>
