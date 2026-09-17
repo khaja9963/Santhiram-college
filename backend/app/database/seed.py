@@ -3,9 +3,11 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.database.session import SessionLocal, engine, Base
 from app.models.all_models import (
-    User, Student, Faculty, Department, Subject, Attendance, Marks,
-    Result, FeeRecord, NewsAnnouncement, Event, Document, PlacementRecord,
-    AccountActivationToken, PasswordResetToken, AuditLog
+    User, Student, Faculty, Department, Course, Subject, Attendance, Marks,
+    Assignment, AssignmentSubmission, Exam, Result, FeeRecord, Timetable,
+    NewsAnnouncement, Event, Document, DocumentChunk, PlacementRecord,
+    Notification, StudentResume, AIEvaluation,
+    AccountActivationToken, PasswordResetToken, UserSession, AuditLog
 )
 from app.core.security import get_password_hash, hash_token
 
@@ -121,6 +123,19 @@ def init_db(force_reset: bool = False):
 
         cse_dept = dept_objs.get("CSE")
         ece_dept = dept_objs.get("ECE")
+
+        # 1b. Courses
+        courses_data = [
+            {"code": "BTECH-CSE", "name": "B.Tech Computer Science & Engineering", "degree": "B.Tech", "department_id": dept_objs.get("CSE").id if dept_objs.get("CSE") else None, "duration_years": 4, "total_semesters": 8, "intake": 180},
+            {"code": "BTECH-CSM", "name": "B.Tech CSE (Artificial Intelligence & Machine Learning)", "degree": "B.Tech", "department_id": dept_objs.get("CSM").id if dept_objs.get("CSM") else None, "duration_years": 4, "total_semesters": 8, "intake": 120},
+            {"code": "BTECH-CSD", "name": "B.Tech CSE (Data Science)", "degree": "B.Tech", "department_id": dept_objs.get("CSD").id if dept_objs.get("CSD") else None, "duration_years": 4, "total_semesters": 8, "intake": 60},
+            {"code": "BTECH-ECE", "name": "B.Tech Electronics & Communication Engineering", "degree": "B.Tech", "department_id": dept_objs.get("ECE").id if dept_objs.get("ECE") else None, "duration_years": 4, "total_semesters": 8, "intake": 120},
+            {"code": "BTECH-EEE", "name": "B.Tech Electrical & Electronics Engineering", "degree": "B.Tech", "department_id": dept_objs.get("EEE").id if dept_objs.get("EEE") else None, "duration_years": 4, "total_semesters": 8, "intake": 60},
+            {"code": "MBA-GEN", "name": "Master of Business Administration (MBA)", "degree": "MBA", "department_id": dept_objs.get("MBA").id if dept_objs.get("MBA") else None, "duration_years": 2, "total_semesters": 4, "intake": 120},
+            {"code": "MCA-GEN", "name": "Master of Computer Applications (MCA)", "degree": "MCA", "department_id": dept_objs.get("CSE").id if dept_objs.get("CSE") else None, "duration_years": 2, "total_semesters": 4, "intake": 60},
+        ]
+        for c in courses_data:
+            db.add(Course(**c))
 
         # 2. Users & Development Seed Accounts (DEVELOPMENT ONLY)
         now = datetime.utcnow()
@@ -400,6 +415,89 @@ def init_db(force_reset: bool = False):
         ]
         for e in events_data:
             db.add(Event(**e))
+
+        # 9b. Exams Schedule
+        exams_data = [
+            {"subject_code": "20A05601T", "subject_name": "Database Management Systems", "department": "CSE", "year": 3, "semester": 6, "exam_type": "MID-2", "exam_date": "2025-04-22", "start_time": "10:00 AM", "end_time": "12:00 PM", "duration_minutes": 120, "max_marks": 30.0, "room_number": "CS-Block Room 301"},
+            {"subject_code": "20A05602T", "subject_name": "Operating Systems", "department": "CSE", "year": 3, "semester": 6, "exam_type": "MID-2", "exam_date": "2025-04-24", "start_time": "10:00 AM", "end_time": "12:00 PM", "duration_minutes": 120, "max_marks": 30.0, "room_number": "CS-Block Room 302"},
+            {"subject_code": "20A05603T", "subject_name": "Machine Learning & AI", "department": "CSE", "year": 3, "semester": 6, "exam_type": "MID-2", "exam_date": "2025-04-26", "start_time": "10:00 AM", "end_time": "12:00 PM", "duration_minutes": 120, "max_marks": 30.0, "room_number": "CS-Block Room 301"},
+            {"subject_code": "20A05604T", "subject_name": "Computer Networks", "department": "CSE", "year": 3, "semester": 6, "exam_type": "MID-2", "exam_date": "2025-04-28", "start_time": "10:00 AM", "end_time": "12:00 PM", "duration_minutes": 120, "max_marks": 30.0, "room_number": "CS-Block Room 303"},
+            {"subject_code": "20A05605T", "subject_name": "Cloud Computing Technologies", "department": "CSE", "year": 3, "semester": 6, "exam_type": "MID-2", "exam_date": "2025-04-30", "start_time": "10:00 AM", "end_time": "12:00 PM", "duration_minutes": 120, "max_marks": 30.0, "room_number": "CS-Block Room 304"}
+        ]
+        for ex in exams_data:
+            db.add(Exam(**ex))
+
+        # 9c. Timetable
+        timetable_entries = [
+            {"department": "CSE", "year": 3, "semester": 6, "section": "A", "day_of_week": "Monday", "period_number": 1, "start_time": "09:30 AM", "end_time": "10:30 AM", "subject_code": "20A05601T", "subject_name": "Database Management Systems", "faculty_name": "Dr. K. Subba Reddy", "room_number": "CS-302"},
+            {"department": "CSE", "year": 3, "semester": 6, "section": "A", "day_of_week": "Monday", "period_number": 2, "start_time": "10:30 AM", "end_time": "11:30 AM", "subject_code": "20A05602T", "subject_name": "Operating Systems", "faculty_name": "Prof. S. Suresh", "room_number": "CS-302"},
+            {"department": "CSE", "year": 3, "semester": 6, "section": "A", "day_of_week": "Monday", "period_number": 3, "start_time": "11:45 AM", "end_time": "12:45 PM", "subject_code": "20A05603T", "subject_name": "Machine Learning & AI", "faculty_name": "Dr. P. Mallikarjuna", "room_number": "CS-302"},
+            {"department": "CSE", "year": 3, "semester": 6, "section": "A", "day_of_week": "Monday", "period_number": 4, "start_time": "01:30 PM", "end_time": "04:30 PM", "subject_code": "20A05607P", "subject_name": "AI & Machine Learning Lab", "faculty_name": "Dr. P. Mallikarjuna", "room_number": "AI Lab - 2", "is_lab": True},
+            {"department": "CSE", "year": 3, "semester": 6, "section": "A", "day_of_week": "Tuesday", "period_number": 1, "start_time": "09:30 AM", "end_time": "10:30 AM", "subject_code": "20A05604T", "subject_name": "Computer Networks", "faculty_name": "Dr. G. Ramesh", "room_number": "CS-302"},
+            {"department": "CSE", "year": 3, "semester": 6, "section": "A", "day_of_week": "Tuesday", "period_number": 2, "start_time": "10:30 AM", "end_time": "11:30 AM", "subject_code": "20A05605T", "subject_name": "Cloud Computing Technologies", "faculty_name": "Dr. V. Ramanjaneyulu", "room_number": "CS-302"},
+            {"department": "CSE", "year": 3, "semester": 6, "section": "A", "day_of_week": "Wednesday", "period_number": 1, "start_time": "09:30 AM", "end_time": "10:30 AM", "subject_code": "20A05601T", "subject_name": "Database Management Systems", "faculty_name": "Dr. K. Subba Reddy", "room_number": "CS-302"},
+            {"department": "CSE", "year": 3, "semester": 6, "section": "A", "day_of_week": "Thursday", "period_number": 1, "start_time": "09:30 AM", "end_time": "10:30 AM", "subject_code": "20A05603T", "subject_name": "Machine Learning & AI", "faculty_name": "Dr. P. Mallikarjuna", "room_number": "CS-302"},
+            {"department": "CSE", "year": 3, "semester": 6, "section": "A", "day_of_week": "Friday", "period_number": 1, "start_time": "09:30 AM", "end_time": "10:30 AM", "subject_code": "20A05602T", "subject_name": "Operating Systems", "faculty_name": "Prof. S. Suresh", "room_number": "CS-302"}
+        ]
+        for t in timetable_entries:
+            db.add(Timetable(**t))
+
+        # 9d. Assignments & Submissions
+        assign_dbms = Assignment(
+            title="Database Normalization & BCNF Case Study",
+            department="CSE",
+            subject_code="20A05601T",
+            subject_name="Database Management Systems",
+            year=3,
+            semester=6,
+            due_date="2025-04-15",
+            max_marks=10,
+            description="Decompose a given relational schema from 1NF to BCNF with dependency preservation proof.",
+            created_by="Dr. K. Subba Reddy"
+        )
+        db.add(assign_dbms)
+        db.flush()
+
+        assign_ml = Assignment(
+            title="Supervised Learning: SVM vs Decision Trees on Healthcare Dataset",
+            department="CSE",
+            subject_code="20A05603T",
+            subject_name="Machine Learning & AI",
+            year=3,
+            semester=6,
+            due_date="2025-04-20",
+            max_marks=10,
+            description="Train and evaluate Support Vector Machine and Random Forest classifiers with confusion matrix and ROC curves.",
+            created_by="Faculty Coordinator"
+        )
+        db.add(assign_ml)
+        db.flush()
+
+        # Seed submission for student_profile
+        sub_dbms = AssignmentSubmission(
+            assignment_id=assign_dbms.id,
+            student_id=student_profile.id,
+            file_name="22X51A0501_DBMS_Assignment1.pdf",
+            file_url="/uploads/submissions/22X51A0501_DBMS_Assignment1.pdf",
+            submitted_text="Submitted the complete normalization proof with 3NF and BCNF table designs.",
+            status="GRADED",
+            scored_marks=9.5,
+            feedback="Excellent relational algebra notation and correct dependency preservation proof.",
+            submitted_at=now - timedelta(days=2),
+            graded_at=now - timedelta(days=1),
+            graded_by="Dr. K. Subba Reddy"
+        )
+        db.add(sub_dbms)
+
+        # 9e. Notifications
+        notifications_data = [
+            {"user_id": student_local.id, "target_role": "STUDENT", "target_department": "CSE", "type": "EXAM", "title": "B.Tech III Year II Sem MID-2 Examination Schedule", "message": "MID-2 Theory examinations commence from 22nd April 2025. Please review your hall schedule.", "link": "/student/exams"},
+            {"user_id": student_local.id, "target_role": "STUDENT", "target_department": "CSE", "type": "ASSIGNMENT", "title": "DBMS Assignment 1 Graded", "message": "Dr. K. Subba Reddy graded your Database Normalization submission: Scored 9.5/10.", "link": "/student/assignments"},
+            {"user_id": student_local.id, "target_role": "STUDENT", "target_department": "ALL", "type": "PLACEMENT", "title": "TCS Digital Campus Drive Registrations Open", "message": "Final phase registrations for TCS Digital Drive (7.5 LPA) are now live for eligible CSE/ECE students.", "link": "/student/ai-placement"},
+            {"user_id": faculty_local.id, "target_role": "FACULTY", "target_department": "CSE", "type": "ACADEMIC", "title": "Mid-Term Attendance Audit", "message": "Please ensure attendance logs for Semester VI CSE are locked and submitted to Examination Cell.", "link": "/faculty/attendance"}
+        ]
+        for notif in notifications_data:
+            db.add(Notification(**notif))
 
         # 10. Documents
         docs_data = [

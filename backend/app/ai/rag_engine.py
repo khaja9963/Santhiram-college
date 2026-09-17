@@ -252,7 +252,8 @@ class RAGEngine:
             "the", "is", "at", "which", "on", "a", "an", "and", "or",
             "for", "in", "to", "what", "where", "who", "how", "tell",
             "me", "about", "show", "can", "you", "of", "with", "are",
-            "do", "does", "schedule", "give", "i", "want", "know"
+            "do", "does", "schedule", "give", "i", "want", "know",
+            "srec", "santhiram", "college", "engineering", "nandyal"
         }
         
         q_tokens = [_normalize_token(t) for t in raw_tokens if t not in stopwords]
@@ -325,8 +326,7 @@ class RAGEngine:
         if not relevant_docs:
             return {
                 "answer": (
-                    "I couldn't find this specific detail in the available SREC official documents. "
-                    "Please contact the SREC Administrative Office at principal@srecnandyal.edu.in or visit the official website at https://www.srecnandyal.edu.in/."
+                    "I couldn't find this information in the SREC knowledge base."
                 ),
                 "sources": [],
                 "is_grounded": False,

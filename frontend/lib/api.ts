@@ -1,3 +1,6 @@
+import { clientRAGEngine } from './rag-client';
+import { StudyAssistantClient, PlacementAssistantClient } from './study-placement-client';
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -185,41 +188,128 @@ export const AdminAPI = {
 };
 
 export const AI_API = {
-  chat: (message: string, conversationId?: string, department?: string) =>
-    apiFetch<any>('/ai/chat', {
-      method: 'POST',
-      body: JSON.stringify({ message, conversation_id: conversationId, department }),
-    }),
-  explainConcept: (subject: string, topic: string, difficulty = 'intermediate') =>
-    apiFetch<any>('/ai/study/explain', {
-      method: 'POST',
-      body: JSON.stringify({ subject, topic, difficulty }),
-    }),
-  generateQuiz: (subject: string, topic: string, count = 5) =>
-    apiFetch<any>('/ai/study/quiz', {
-      method: 'POST',
-      body: JSON.stringify({ subject, topic, count }),
-    }),
-  evaluateQuiz: (subject: string, userAnswers: Record<number, string>, questions: any[]) =>
-    apiFetch<any>('/ai/study/evaluate', {
-      method: 'POST',
-      body: JSON.stringify({ subject, user_answers: userAnswers, questions }),
-    }),
-  analyzeResume: (resumeText: string, targetRole = 'Software Development Engineer') =>
-    apiFetch<any>('/ai/placement/analyze-resume', {
-      method: 'POST',
-      body: JSON.stringify({ resume_text: resumeText, target_role: targetRole }),
-    }),
-  getInterviewQuestion: (role = 'Python Developer', questionNumber = 1) =>
-    apiFetch<any>(`/ai/placement/mock-interview/question?role=${encodeURIComponent(role)}&question_number=${questionNumber}`),
-  submitInterviewAnswer: (question: string, studentAnswer: string, roleTarget: string, questionNumber = 1) =>
-    apiFetch<any>('/ai/placement/mock-interview/submit', {
-      method: 'POST',
-      body: JSON.stringify({
+  chat: async (message: string, conversationId?: string, department?: string) => {
+    try {
+      // Attempt backend call first with a fast timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+      const res = await apiFetch<any>('/ai/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message, conversation_id: conversationId, department }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return res;
+    } catch {
+      // Seamlessly fall back to client-side RAG engine for static deployments / offline / GitHub Pages
+      return await clientRAGEngine.answerQuery(message, department);
+    }
+  },
+
+  explainConcept: async (subject: string, topic: string, difficulty = 'intermediate') => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await apiFetch<any>('/ai/study/explain', {
+        method: 'POST',
+        body: JSON.stringify({ subject, topic, difficulty }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return res;
+    } catch {
+      return await StudyAssistantClient.explainConcept(subject, topic, difficulty);
+    }
+  },
+
+  generateQuiz: async (subject: string, topic: string, count = 5) => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await apiFetch<any>('/ai/study/quiz', {
+        method: 'POST',
+        body: JSON.stringify({ subject, topic, count }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return res;
+    } catch {
+      return await StudyAssistantClient.generateQuiz(subject, topic, count);
+    }
+  },
+
+  evaluateQuiz: async (subject: string, userAnswers: Record<number, string>, questions: any[]) => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await apiFetch<any>('/ai/study/evaluate', {
+        method: 'POST',
+        body: JSON.stringify({ subject, user_answers: userAnswers, questions }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return res;
+    } catch {
+      return await StudyAssistantClient.evaluateQuiz(subject, userAnswers, questions);
+    }
+  },
+
+  analyzeResume: async (resumeText: string, targetRole = 'Software Development Engineer') => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await apiFetch<any>('/ai/placement/analyze-resume', {
+        method: 'POST',
+        body: JSON.stringify({ resume_text: resumeText, target_role: targetRole }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return res;
+    } catch {
+      return await PlacementAssistantClient.analyzeResume(resumeText, targetRole);
+    }
+  },
+
+  getInterviewQuestion: async (role = 'Python Developer', questionNumber = 1) => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await apiFetch<any>(
+        `/ai/placement/mock-interview/question?role=${encodeURIComponent(role)}&question_number=${questionNumber}`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
+      return res;
+    } catch {
+      return await PlacementAssistantClient.getInterviewQuestion(role, questionNumber);
+    }
+  },
+
+  submitInterviewAnswer: async (question: string, studentAnswer: string, roleTarget: string, questionNumber = 1) => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await apiFetch<any>('/ai/placement/mock-interview/submit', {
+        method: 'POST',
+        body: JSON.stringify({
+          question,
+          student_answer: studentAnswer,
+          role_target: roleTarget,
+          question_number: questionNumber,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return res;
+    } catch {
+      return await PlacementAssistantClient.submitInterviewAnswer(
         question,
-        student_answer: studentAnswer,
-        role_target: roleTarget,
-        question_number: questionNumber,
-      }),
-    }),
+        studentAnswer,
+        roleTarget,
+        questionNumber
+      );
+    }
+  },
 };
+

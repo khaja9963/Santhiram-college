@@ -182,6 +182,16 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
               </kbd>
             </button>
 
+            {/* Ask SREC AI Drawer Trigger */}
+            <button
+              onClick={onOpenAI}
+              className="flex items-center gap-1.5 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-transform hover:scale-102 active:scale-98"
+              title="Ask SREC AI Assistant"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+              <span className="hidden sm:inline">Ask AI</span>
+            </button>
+
             {/* Portal Access */}
             {user ? (
               <div className="flex items-center gap-2">
@@ -234,6 +244,23 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="xl:hidden mt-3 pt-3 border-t border-slate-200 space-y-2 pb-3 text-sm font-medium text-slate-700">
+            {/* Mobile Ask AI CTA */}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenAI();
+              }}
+              className="w-full flex items-center justify-between bg-gradient-to-r from-blue-700 to-indigo-700 text-white p-3 rounded-xl shadow-xs text-xs font-bold mb-2 transition-transform active:scale-98"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>Ask SREC AI Assistant</span>
+              </div>
+              <span className="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-mono">
+                RAG Grounded
+              </span>
+            </button>
+
             {/* Mobile Quick Login CTA */}
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 mb-2">
               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">

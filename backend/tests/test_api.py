@@ -140,3 +140,39 @@ def test_ai_placement_assistant():
     assert "Python" in data["technical_skills"]
     assert data["ats_score"] > 60
     assert len(data["recommended_roles"]) >= 1
+
+def test_database_models_phase1():
+    from app.database.session import SessionLocal
+    from app.models.all_models import (
+        Course, Assignment, AssignmentSubmission, Exam, Timetable, Notification
+    )
+    db = SessionLocal()
+    try:
+        # 1. Courses
+        courses = db.query(Course).all()
+        assert len(courses) >= 5
+        cse_course = db.query(Course).filter(Course.code == "BTECH-CSE").first()
+        assert cse_course is not None
+        assert cse_course.degree == "B.Tech"
+
+        # 2. Assignments & Submissions
+        assign = db.query(Assignment).first()
+        assert assign is not None
+        assert len(assign.submissions) >= 1
+        sub = assign.submissions[0]
+        assert sub.status in ["SUBMITTED", "GRADED"]
+        assert sub.student is not None
+
+        # 3. Exams
+        exams = db.query(Exam).filter(Exam.exam_type == "MID-2").all()
+        assert len(exams) >= 3
+
+        # 4. Timetable
+        tt_monday = db.query(Timetable).filter(Timetable.day_of_week == "Monday").all()
+        assert len(tt_monday) >= 3
+
+        # 5. Notifications
+        notifs = db.query(Notification).all()
+        assert len(notifs) >= 2
+    finally:
+        db.close()

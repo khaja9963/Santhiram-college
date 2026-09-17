@@ -65,6 +65,7 @@ class User(Base):
     reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="user", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
 class Student(Base):
     __tablename__ = "students"
@@ -96,6 +97,8 @@ class Student(Base):
     attendances = relationship("Attendance", back_populates="student", cascade="all, delete-orphan")
     marks = relationship("Marks", back_populates="student", cascade="all, delete-orphan")
     results = relationship("Result", back_populates="student", cascade="all, delete-orphan")
+    submissions = relationship("AssignmentSubmission", back_populates="student", cascade="all, delete-orphan")
+    resumes = relationship("StudentResume", back_populates="student", cascade="all, delete-orphan")
 
 class Faculty(Base):
     __tablename__ = "faculty"
@@ -130,6 +133,24 @@ class Department(Base):
     intake = Column(Integer, default=180)
     total_faculty = Column(Integer, default=28)
     labs_count = Column(Integer, default=8)
+
+    courses = relationship("Course", back_populates="department_rel", cascade="all, delete-orphan")
+
+class Course(Base):
+    __tablename__ = "courses"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    code = Column(String(20), unique=True, index=True, nullable=False) # e.g. BTECH-CSE, BTECH-CSM, MBA, MCA
+    name = Column(String(150), nullable=False)                         # e.g. B.Tech in Computer Science & Engineering
+    degree = Column(String(20), default="B.Tech")                      # B.Tech, M.Tech, MBA, MCA
+    department_id = Column(String(36), ForeignKey("departments.id"), nullable=True)
+    duration_years = Column(Integer, default=4)
+    total_semesters = Column(Integer, default=8)
+    intake = Column(Integer, default=180)
+    eligibility = Column(String(255), default="10+2 / AP EAPCET with Physics, Chem, Math")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    department_rel = relationship("Department", back_populates="courses")
 
 class Subject(Base):
     __tablename__ = "subjects"
@@ -186,6 +207,8 @@ class Assignment(Base):
     description = Column(Text, nullable=True)
     created_by = Column(String(100), default="Faculty Coordinator")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    submissions = relationship("AssignmentSubmission", back_populates="assignment", cascade="all, delete-orphan")
 
 class Result(Base):
     __tablename__ = "results"
@@ -347,3 +370,114 @@ class AuditLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     user = relationship("User", back_populates="audit_logs")
+
+class AssignmentSubmission(Base):
+    __tablename__ = "assignment_submissions"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    assignment_id = Column(String(36), ForeignKey("assignments.id"), nullable=False, index=True)
+    student_id = Column(String(36), ForeignKey("students.id"), nullable=False, index=True)
+    file_name = Column(String(255), nullable=True)
+    file_url = Column(String(500), nullable=True)
+    submitted_text = Column(Text, nullable=True)
+    status = Column(String(20), default="SUBMITTED")  # SUBMITTED, GRADED, LATE, RESUBMITTED
+    scored_marks = Column(Float, nullable=True)
+    feedback = Column(Text, nullable=True)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
+    graded_at = Column(DateTime, nullable=True)
+    graded_by = Column(String(100), nullable=True)
+
+    assignment = relationship("Assignment", back_populates="submissions")
+    student = relationship("Student", back_populates="submissions")
+
+class Exam(Base):
+    __tablename__ = "exams"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    subject_code = Column(String(20), nullable=False, index=True)
+    subject_name = Column(String(150), nullable=False)
+    department = Column(String(20), nullable=False, index=True)
+    year = Column(Integer, default=3)
+    semester = Column(Integer, default=6)
+    exam_type = Column(String(30), nullable=False) # MID-1, MID-2, SEMESTER, LAB_INTERNAL, LAB_EXTERNAL
+    exam_date = Column(String(50), nullable=False) # e.g. "2025-04-10"
+    start_time = Column(String(30), default="10:00 AM")
+    end_time = Column(String(30), default="01:00 PM")
+    duration_minutes = Column(Integer, default=180)
+    max_marks = Column(Float, default=70.0)
+    room_number = Column(String(50), default="Main Exam Hall - Block A")
+    academic_year = Column(String(20), default="2024-25")
+    instructions = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Timetable(Base):
+    __tablename__ = "timetable"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    department = Column(String(20), nullable=False, index=True)
+    year = Column(Integer, default=3)
+    semester = Column(Integer, default=6)
+    section = Column(String(10), default="A")
+    day_of_week = Column(String(20), nullable=False, index=True) # Monday, Tuesday, Wednesday, Thursday, Friday, Saturday
+    period_number = Column(Integer, nullable=False)              # 1 to 7
+    start_time = Column(String(20), nullable=False)              # e.g. "09:30 AM"
+    end_time = Column(String(20), nullable=False)                # e.g. "10:30 AM"
+    subject_code = Column(String(20), nullable=False)
+    subject_name = Column(String(150), nullable=False)
+    faculty_name = Column(String(100), nullable=False)
+    room_number = Column(String(50), default="CS-302")
+    is_lab = Column(Boolean, default=False)
+    academic_year = Column(String(20), default="2024-25")
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True, index=True) # Null for broadcast
+    target_role = Column(String(20), nullable=True, default="ALL") # STUDENT, FACULTY, ADMIN, ALL
+    target_department = Column(String(20), nullable=True, default="ALL") # CSE, CSM, ALL
+    type = Column(String(50), default="ANNOUNCEMENT") # ASSIGNMENT, EXAM, RESULT, ATTENDANCE, PLACEMENT, ANNOUNCEMENT, EVENT, SYSTEM
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    link = Column(String(255), nullable=True)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    user = relationship("User", back_populates="notifications")
+
+class StudentResume(Base):
+    __tablename__ = "resumes"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    student_id = Column(String(36), ForeignKey("students.id"), nullable=False, index=True)
+    file_name = Column(String(255), nullable=False)
+    file_path = Column(String(500), nullable=True)
+    parsed_text = Column(Text, nullable=True)
+    ats_score = Column(Integer, default=75)
+    target_role = Column(String(100), default="Software Development Engineer")
+    extracted_skills = Column(JSON, default=list)
+    education_summary = Column(String(255), nullable=True)
+    experience_level = Column(String(100), default="Fresher")
+    missing_skills = Column(JSON, default=list)
+    suggestions = Column(JSON, default=list)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+    student = relationship("Student", back_populates="resumes")
+
+class AIEvaluation(Base):
+    __tablename__ = "ai_evaluations"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True, index=True)
+    session_type = Column(String(50), default="COLLEGE_ASSISTANT") # COLLEGE_ASSISTANT, STUDY, PLACEMENT
+    query = Column(Text, nullable=False)
+    response_snippet = Column(Text, nullable=True)
+    response_time_ms = Column(Integer, default=240)
+    has_relevant_docs = Column(Boolean, default=True)
+    retrieved_docs_count = Column(Integer, default=2)
+    sources = Column(JSON, default=list)
+    thumbs_up = Column(Boolean, nullable=True)
+    user_feedback = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    user = relationship("User", foreign_keys=[user_id])

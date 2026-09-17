@@ -386,3 +386,176 @@ class MockInterviewFeedback(BaseModel):
     missing_concepts: List[str]
     clarity_feedback: str
     sample_model_answer: str
+
+# Course Schemas
+class CourseCreate(BaseModel):
+    code: str
+    name: str
+    degree: str = "B.Tech"
+    department_id: Optional[str] = None
+    duration_years: int = 4
+    total_semesters: int = 8
+    intake: int = 180
+    eligibility: Optional[str] = "10+2 / AP EAPCET with Physics, Chem, Math"
+
+class CourseOut(BaseModel):
+    id: str
+    code: str
+    name: str
+    degree: str
+    department_id: Optional[str] = None
+    duration_years: int
+    total_semesters: int
+    intake: int
+    eligibility: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+# Assignment Submission Schemas
+class AssignmentSubmissionCreate(BaseModel):
+    assignment_id: str
+    file_name: Optional[str] = None
+    file_url: Optional[str] = None
+    submitted_text: Optional[str] = None
+
+class AssignmentSubmissionOut(BaseModel):
+    id: str
+    assignment_id: str
+    student_id: str
+    file_name: Optional[str] = None
+    file_url: Optional[str] = None
+    submitted_text: Optional[str] = None
+    status: str
+    scored_marks: Optional[float] = None
+    feedback: Optional[str] = None
+    submitted_at: Optional[datetime] = None
+    graded_at: Optional[datetime] = None
+    graded_by: Optional[str] = None
+
+class GradeSubmissionRequest(BaseModel):
+    scored_marks: float
+    feedback: Optional[str] = None
+
+# Exam Schemas
+class ExamCreate(BaseModel):
+    subject_code: str
+    subject_name: str
+    department: str
+    year: int = 3
+    semester: int = 6
+    exam_type: str = "MID-1" # MID-1, MID-2, SEMESTER
+    exam_date: str
+    start_time: str = "10:00 AM"
+    end_time: str = "01:00 PM"
+    duration_minutes: int = 180
+    max_marks: float = 70.0
+    room_number: str = "Main Exam Hall - Block A"
+    academic_year: str = "2024-25"
+    instructions: Optional[str] = None
+
+class ExamOut(BaseModel):
+    id: str
+    subject_code: str
+    subject_name: str
+    department: str
+    year: int
+    semester: int
+    exam_type: str
+    exam_date: str
+    start_time: str
+    end_time: str
+    duration_minutes: int
+    max_marks: float
+    room_number: str
+    academic_year: str
+    instructions: Optional[str] = None
+
+# Timetable Schemas
+class TimetableCreate(BaseModel):
+    department: str
+    year: int = 3
+    semester: int = 6
+    section: str = "A"
+    day_of_week: str
+    period_number: int
+    start_time: str
+    end_time: str
+    subject_code: str
+    subject_name: str
+    faculty_name: str
+    room_number: str = "CS-302"
+    is_lab: bool = False
+    academic_year: str = "2024-25"
+
+class TimetableOut(BaseModel):
+    id: str
+    department: str
+    year: int
+    semester: int
+    section: str
+    day_of_week: str
+    period_number: int
+    start_time: str
+    end_time: str
+    subject_code: str
+    subject_name: str
+    faculty_name: str
+    room_number: str
+    is_lab: bool
+    academic_year: str
+
+# Notification Schemas
+class NotificationCreate(BaseModel):
+    user_id: Optional[str] = None
+    target_role: Optional[str] = "ALL"
+    target_department: Optional[str] = "ALL"
+    type: str = "ANNOUNCEMENT"
+    title: str
+    message: str
+    link: Optional[str] = None
+
+class NotificationOut(BaseModel):
+    id: str
+    user_id: Optional[str] = None
+    target_role: Optional[str] = None
+    target_department: Optional[str] = None
+    type: str
+    title: str
+    message: str
+    link: Optional[str] = None
+    is_read: bool
+    created_at: Optional[datetime] = None
+
+class MarkNotificationReadRequest(BaseModel):
+    notification_id: str
+
+# Student Resume Schemas
+class StudentResumeOut(BaseModel):
+    id: str
+    student_id: str
+    file_name: str
+    file_path: Optional[str] = None
+    ats_score: int
+    target_role: str
+    extracted_skills: List[str]
+    education_summary: Optional[str] = None
+    experience_level: Optional[str] = None
+    missing_skills: List[str]
+    suggestions: List[str]
+    uploaded_at: Optional[datetime] = None
+
+# AI Evaluation & Feedback Schemas
+class AIFeedbackRequest(BaseModel):
+    conversation_id: Optional[str] = None
+    query: str
+    thumbs_up: bool
+    user_feedback: Optional[str] = None
+    session_type: str = "COLLEGE_ASSISTANT"
+
+class AIEvaluationStatsOut(BaseModel):
+    total_queries: int
+    successful_retrievals: int
+    no_relevant_docs: int
+    average_latency_ms: float
+    thumbs_up_count: int
+    thumbs_down_count: int
+    positive_feedback_pct: float
