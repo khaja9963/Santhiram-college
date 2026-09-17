@@ -182,16 +182,6 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
               </kbd>
             </button>
 
-            {/* Ask SREC AI Drawer Trigger */}
-            <button
-              onClick={onOpenAI}
-              className="flex items-center gap-1.5 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-transform hover:scale-102 active:scale-98"
-              title="Ask SREC AI Assistant"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-              <span className="hidden sm:inline">Ask AI</span>
-            </button>
-
             {/* Portal Access */}
             {user ? (
               <div className="flex items-center gap-2">
