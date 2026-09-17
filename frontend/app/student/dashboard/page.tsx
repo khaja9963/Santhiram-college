@@ -8,16 +8,29 @@ import {
   Bell, ChevronRight, User, Sparkles
 } from 'lucide-react';
 import { StudentAPI } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import { getStudentAttendanceSummary } from '@/lib/attendance-store';
 import { StudentAttendanceOverview } from '@/types';
 
 export default function StudentDashboardPage() {
-  const [attendance, setAttendance] = useState<StudentAttendanceOverview | null>(null);
+  const { user } = useAuth();
+  const studentRoll = user?.user_code || '22X51A0501';
+
+  const [liveSummary, setLiveSummary] = useState(() => getStudentAttendanceSummary(studentRoll));
 
   useEffect(() => {
-    StudentAPI.getAttendance()
-      .then((data) => setAttendance(data))
-      .catch(() => {});
-  }, []);
+    const refresh = () => {
+      setLiveSummary(getStudentAttendanceSummary(user?.user_code || '22X51A0501'));
+    };
+
+    refresh();
+    window.addEventListener('srec_attendance_updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('srec_attendance_updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, [user]);
 
   return (
     <div className="space-y-8">
@@ -62,11 +75,22 @@ export default function StudentDashboardPage() {
             <CalendarCheck className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-black text-slate-900">
-            {attendance ? `${attendance.overall_percentage}%` : '86.2%'}
+            {liveSummary.overall_percentage}%
           </div>
-          <div className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" />
-            <span>Eligible for Exams (&gt;75%)</span>
+          <div className={`text-[11px] font-medium flex items-center gap-1 ${
+            liveSummary.is_low_attendance ? 'text-red-600' : 'text-emerald-600'
+          }`}>
+            {liveSummary.is_low_attendance ? (
+              <>
+                <AlertTriangle className="w-3 h-3 text-red-600" />
+                <span>Attendance Shortage (&lt;75%)</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Eligible for Exams (&gt;75%)</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -162,26 +186,20 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="space-y-3">
-              {[
-                { code: 'DBMS', name: 'Database Management Systems', pct: 89.6 },
-                { code: 'OS', name: 'Operating Systems', pct: 84.8 },
-                { code: 'AI/ML', name: 'Machine Learning & AI', pct: 92.0 },
-                { code: 'CN', name: 'Computer Networks', pct: 77.8 },
-                { code: 'CLOUD', name: 'Cloud Computing Technologies', pct: 86.4 },
-              ].map((sub, idx) => (
+              {liveSummary.subjects.map((sub, idx) => (
                 <div key={idx} className="space-y-1 text-xs">
                   <div className="flex justify-between font-bold text-slate-800">
-                    <span>{sub.name} ({sub.code})</span>
-                    <span className={sub.pct < 75 ? 'text-red-600' : 'text-emerald-700'}>
-                      {sub.pct}%
+                    <span>{sub.subject_name} ({sub.subject_code})</span>
+                    <span className={sub.percentage < 75 ? 'text-red-600' : 'text-emerald-700'}>
+                      {sub.percentage}%
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
-                        sub.pct < 75 ? 'bg-red-500' : sub.pct < 85 ? 'bg-amber-500' : 'bg-emerald-500'
+                        sub.percentage < 75 ? 'bg-red-500' : sub.percentage < 85 ? 'bg-amber-500' : 'bg-emerald-500'
                       }`}
-                      style={{ width: `${sub.pct}%` }}
+                      style={{ width: `${Math.min(sub.percentage, 100)}%` }}
                     />
                   </div>
                 </div>
