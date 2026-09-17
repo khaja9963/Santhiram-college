@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Briefcase, Building2, BookOpen,
   FileText, Calendar, Bell, Sparkles, Settings, LogOut,
-  Menu, X, Shield, Database, UserPlus
+  Menu, X, Shield, Database, UserPlus, FileCheck
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { assetUrl } from '@/lib/assets';
@@ -18,8 +18,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { label: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { label: 'New Applications', href: '/admin/applications', icon: FileCheck, badge: 'B.Tech' },
     { label: 'User Management', href: '/admin/users', icon: Users, badge: 'RBAC' },
-    { label: 'Add Student', href: '/admin/users/students', icon: UserPlus },
     { label: 'Add Faculty', href: '/admin/users/faculty', icon: Briefcase },
     { label: 'Audit Event Logs', href: '/admin/audit-logs', icon: Shield },
     { label: 'AI Knowledge Base', href: '/admin/ai-knowledge-base', icon: Sparkles, badge: 'pgvector' },

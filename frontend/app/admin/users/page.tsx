@@ -6,7 +6,7 @@ import {
   Users, UserPlus, Shield, GraduationCap, Briefcase, Search,
   Filter, CheckCircle2, AlertTriangle, RefreshCw, Send, KeyRound,
   Eye, MoreVertical, X, Check, Lock, ChevronLeft, ChevronRight,
-  Clock, ShieldAlert, History
+  Clock, ShieldAlert, History, FileCheck
 } from 'lucide-react';
 import { AdminAPI } from '@/lib/api';
 
@@ -213,11 +213,11 @@ export default function AdminUsersPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <Link
-            href="/admin/users/students"
+            href="/admin/applications"
             className="inline-flex items-center gap-1.5 bg-[#0B2545] hover:bg-blue-900 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition-all shadow-xs active:scale-95"
           >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Add Student</span>
+            <FileCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span>New Applications</span>
           </Link>
 
           <Link

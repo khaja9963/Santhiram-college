@@ -149,6 +149,7 @@ export default function AdmissionsPage() {
 
     const applicationRecord = {
       refNo,
+      status: 'PENDING',
       submittedAt: new Date().toISOString(),
       ...finalizedData,
     };

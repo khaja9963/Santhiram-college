@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Users, Briefcase, Building2, BookOpen, FileText,
   Calendar, Bell, Sparkles, CheckCircle2, ArrowRight,
-  Database, ShieldCheck, Activity
+  Database, ShieldCheck, Activity, FileCheck
 } from 'lucide-react';
 import { AdminAPI } from '@/lib/api';
 
@@ -122,10 +122,11 @@ export default function AdminDashboardPage() {
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
             <Link
-              href="/admin/users/students"
+              href="/admin/applications"
               className="bg-[#0B2545] hover:bg-blue-900 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs"
             >
-              <span>Add Student</span>
+              <FileCheck className="w-3.5 h-3.5 text-amber-400" />
+              <span>New Applications</span>
             </Link>
             <Link
               href="/admin/users/faculty"
