@@ -215,9 +215,7 @@ export default function FacultyAttendancePage() {
 
       localStorage.setItem(storageKey, JSON.stringify(updatedSessions));
 
-      // 3. Automatically download the consolidated master Excel workbook
-      exportMasterExcel(updatedSessions);
-
+      // 3. Mark state as saved & locked without triggering a browser file download
       setIsLocked(true);
       setLockedSession(newSession);
       setSaved(true);
@@ -226,7 +224,6 @@ export default function FacultyAttendancePage() {
       const existingSessions = getFacultySessions();
       const updatedSessions = [newSession, ...existingSessions];
       localStorage.setItem(storageKey, JSON.stringify(updatedSessions));
-      exportMasterExcel(updatedSessions);
       setIsLocked(true);
       setLockedSession(newSession);
       setSaved(true);
@@ -403,7 +400,7 @@ export default function FacultyAttendancePage() {
             <div>
               <div className="font-extrabold text-emerald-900">Attendance recorded &amp; stored in Master Excel sheet!</div>
               <div className="text-[11px] text-emerald-700 font-normal mt-0.5">
-                Period {period} ({currentSlotObj?.time}) has been appended to your official faculty attendance file.
+                Period {period} ({currentSlotObj?.time}) has been added to your single faculty master record. You can proceed with other periods without downloading, or download the full sheet anytime.
               </div>
             </div>
           </div>
@@ -413,7 +410,7 @@ export default function FacultyAttendancePage() {
             className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-colors shrink-0 cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            <span>Re-download Master Excel</span>
+            <span>Download Master Excel</span>
           </button>
         </div>
       )}
