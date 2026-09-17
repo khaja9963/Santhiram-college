@@ -44,10 +44,14 @@ export interface SubjectInfo {
 export const AVAILABLE_SUBJECTS: SubjectInfo[] = [
   { code: '20A05601T', name: 'Database Management Systems', section: 'CSE-III-A', fullName: '20A05601T - DBMS (CSE-III-A)' },
   { code: '20A05603T', name: 'Machine Learning & AI', section: 'CSM-III-B', fullName: '20A05603T - Machine Learning (CSM-III-B)' },
-  { code: '20A05605T', name: 'Computer Networks', section: 'CSE-III-A', fullName: '20A05605T - Computer Networks (CSE-III-A)' },
   { code: '20A05602T', name: 'Operating Systems', section: 'CSE-III-B', fullName: '20A05602T - Operating Systems (CSE-III-B)' },
-  { code: '20A05604T', name: 'Cloud Computing Technologies', section: 'CSE-III-A', fullName: '20A05604T - Cloud Computing (CSE-III-A)' },
 ];
+
+export const SECTION_TO_SUBJECT: Record<string, SubjectInfo> = {
+  'CSE-III-A': AVAILABLE_SUBJECTS[0],
+  'CSM-III-B': AVAILABLE_SUBJECTS[1],
+  'CSE-III-B': AVAILABLE_SUBJECTS[2],
+};
 
 export const PERIOD_SLOTS = [
   { id: 1, name: 'Period 1', time: '09:10 AM - 10:00 AM' },
@@ -491,6 +495,15 @@ export interface CandidateAttendanceItem {
   standing: 'ELIGIBLE' | 'CONDONATION' | 'DETAINED';
 }
 
+const SEMESTER_SUBJECT_NAMES: Record<string, string> = {
+  '20A05601T': 'Database Management Systems',
+  '20A05602T': 'Operating Systems',
+  '20A05603T': 'Machine Learning & AI',
+  '20A05604T': 'Computer Networks',
+  '20A05605T': 'Cloud Computing Technologies',
+  '20A52201':  'Universal Human Values & Professional Ethics',
+};
+
 export function getAllCandidatesAttendance(
   subjectCodeFilter?: string,
   sectionFilter?: string
@@ -502,28 +515,28 @@ export function getAllCandidatesAttendance(
       return;
     }
 
-    Object.entries(candidate.subjectBaseline).forEach(([subCode, _]) => {
-      if (subjectCodeFilter && subjectCodeFilter !== 'ALL' && subCode !== subjectCodeFilter) {
-        return;
-      }
+    // Strictly ONE subject per class section - no multi-subject per section
+    const assignedSubject = SECTION_TO_SUBJECT[candidate.section] || AVAILABLE_SUBJECTS[0];
 
-      const subObj = AVAILABLE_SUBJECTS.find((s) => s.code === subCode);
-      const stats = getCandidateSubjectStats(candidate.roll, subCode);
+    if (subjectCodeFilter && subjectCodeFilter !== 'ALL' && assignedSubject.code !== subjectCodeFilter) {
+      return;
+    }
 
-      result.push({
-        id: `${candidate.roll}_${subCode}`,
-        roll: candidate.roll,
-        name: candidate.name,
-        section: candidate.section,
-        department: candidate.department,
-        subjectCode: subCode,
-        subjectName: subObj ? subObj.name : subCode,
-        totalClasses: stats.total,
-        attendedClasses: stats.attended,
-        absentClasses: stats.absent,
-        percentage: stats.percentage,
-        standing: stats.standing,
-      });
+    const stats = getCandidateSubjectStats(candidate.roll, assignedSubject.code);
+
+    result.push({
+      id: `${candidate.roll}_${assignedSubject.code}`,
+      roll: candidate.roll,
+      name: candidate.name,
+      section: candidate.section,
+      department: candidate.department,
+      subjectCode: assignedSubject.code,
+      subjectName: assignedSubject.name,
+      totalClasses: stats.total,
+      attendedClasses: stats.attended,
+      absentClasses: stats.absent,
+      percentage: stats.percentage,
+      standing: stats.standing,
     });
   });
 
@@ -540,14 +553,14 @@ export function getStudentAttendanceSummary(roll: string = '22X51A0501') {
 
   const subjects = Object.entries(candidate.subjectBaseline).map(([subCode, _]) => {
     const stats = getCandidateSubjectStats(candidate.roll, subCode);
-    const subObj = AVAILABLE_SUBJECTS.find((s) => s.code === subCode);
+    const subName = SEMESTER_SUBJECT_NAMES[subCode] || subCode;
 
     overallAttended += stats.attended;
     overallTotal += stats.total;
 
     return {
       subject_code: subCode,
-      subject_name: subObj ? subObj.name : subCode,
+      subject_name: subName,
       total_classes: stats.total,
       attended_classes: stats.attended,
       percentage: stats.percentage,
