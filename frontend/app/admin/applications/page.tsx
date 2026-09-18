@@ -38,6 +38,13 @@ export interface BTechApplication {
   adminRemarks?: string;
   approvedAt?: string;
   approvedBy?: string;
+  paymentStatus?: 'PAID' | 'PENDING';
+  paymentAmount?: number;
+  baseFee?: number;
+  gstAmount?: number;
+  paymentMethod?: 'UPI' | 'CARD' | 'QR';
+  transactionId?: string;
+  paymentDate?: string;
 }
 
 const DEFAULT_SAMPLE_APPLICATIONS: BTechApplication[] = [
@@ -625,6 +632,12 @@ SANTHIRAM ENGINEERING COLLEGE (AUTONOMOUS), NANDYAL
                             year: 'numeric'
                           })}
                         </div>
+                        <div className="mt-1">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                            <Check className="w-2.5 h-2.5" />
+                            <span>₹{app.paymentAmount || 177} Paid ({app.paymentMethod || 'UPI'})</span>
+                          </span>
+                        </div>
                       </td>
 
                       {/* Candidate Particulars */}
@@ -872,6 +885,39 @@ SANTHIRAM ENGINEERING COLLEGE (AUTONOMOUS), NANDYAL
                   <div>
                     <span className="text-slate-500 block text-[11px]">Admission Category</span>
                     <span className="font-bold text-amber-900 text-xs">Category-B Institutional Merit Selection</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Details Card */}
+              <div className="bg-emerald-50/70 border border-emerald-300 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center justify-between border-b border-emerald-200/80 pb-2 text-emerald-950 font-bold uppercase tracking-wider text-[11px]">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Application Fee Status</span>
+                  </div>
+                  <span className="text-[10px] font-black bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded">
+                    {selectedApp.paymentStatus === 'PAID' ? 'PAID & VERIFIED' : 'PAID (ONLINE MERIT)'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div>
+                    <span className="text-emerald-700 block text-[10px] font-bold">Total Paid</span>
+                    <span className="font-black text-emerald-950">₹{selectedApp.paymentAmount?.toFixed(2) || '177.00'}</span>
+                  </div>
+                  <div>
+                    <span className="text-emerald-700 block text-[10px] font-bold">Tax Breakdown</span>
+                    <span className="font-medium text-emerald-900 text-[11px]">₹150 + ₹27 (18% GST)</span>
+                  </div>
+                  <div>
+                    <span className="text-emerald-700 block text-[10px] font-bold">Payment Method</span>
+                    <span className="font-bold text-emerald-950">{selectedApp.paymentMethod || 'UPI Transfer'}</span>
+                  </div>
+                  <div>
+                    <span className="text-emerald-700 block text-[10px] font-bold">Transaction Ref</span>
+                    <span className="font-mono text-[11px] text-emerald-950 font-semibold break-all">
+                      {selectedApp.transactionId || `TXN-SREC-${selectedApp.refNo.slice(-5)}`}
+                    </span>
                   </div>
                 </div>
               </div>

@@ -5,9 +5,11 @@ import Link from 'next/link';
 import {
   GraduationCap, CheckCircle2, FileText, HelpCircle,
   Phone, Mail, Bot, ArrowRight, ShieldCheck, ChevronDown,
-  X, Check, Download, Printer, User, BookOpen, Building2, MapPin, Sparkles, RefreshCw
+  X, Check, Download, Printer, User, BookOpen, Building2, MapPin, Sparkles, RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
+import ApplicationFeePayment, { PaymentRecord } from '@/components/admissions/ApplicationFeePayment';
 
 interface ApplicationFormData {
   fullName: string;
@@ -30,7 +32,21 @@ interface ApplicationFormData {
   entranceExam: string;
   entranceRank: string;
   hallTicketNumber: string;
+  paymentStatus?: 'PAID' | 'PENDING';
+  paymentAmount?: number;
+  baseFee?: number;
+  gstAmount?: number;
+  paymentMethod?: 'UPI' | 'CARD' | 'QR';
+  transactionId?: string;
+  paymentDate?: string;
 }
+
+const INITIAL_PAYMENT: PaymentRecord = {
+  isPaid: false,
+  baseFee: 150,
+  taxAmount: 27,
+  totalAmount: 177,
+};
 
 const INITIAL_FORM: ApplicationFormData = {
   fullName: '',
@@ -61,10 +77,12 @@ export default function AdmissionsPage() {
   // Application Modal state
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [formData, setFormData] = useState<ApplicationFormData>(INITIAL_FORM);
+  const [paymentData, setPaymentData] = useState<PaymentRecord>(INITIAL_PAYMENT);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
   const [submittedData, setSubmittedData] = useState<ApplicationFormData | null>(null);
   const [declarationAccepted, setDeclarationAccepted] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState('');
   const modalBodyRef = useRef<HTMLDivElement>(null);
 
@@ -90,6 +108,13 @@ export default function AdmissionsPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
   };
 
   const autoFillSampleData = () => {
@@ -115,37 +140,137 @@ export default function AdmissionsPage() {
       entranceRank: '14250',
       hallTicketNumber: 'EAPCET26-88319',
     });
+    setPaymentData({
+      isPaid: true,
+      method: 'UPI',
+      txnId: `UPI/SREC/${Date.now().toString().slice(-6)}/984812`,
+      paidAt: new Date().toLocaleString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }),
+      baseFee: 150,
+      taxAmount: 27,
+      totalAmount: 177,
+    });
     setDeclarationAccepted(true);
+    setFieldErrors({});
     setFormError('');
+  };
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.fullName.trim()) {
+      errors.fullName = 'Candidate Full Name is required *';
+    } else if (formData.fullName.trim().length < 3) {
+      errors.fullName = 'Full Name must be at least 3 characters';
+    }
+
+    if (!formData.fatherName.trim()) {
+      errors.fatherName = "Father's / Guardian's Name is required *";
+    }
+
+    if (!formData.dob) {
+      errors.dob = 'Date of Birth is required *';
+    }
+
+    if (!formData.gender) {
+      errors.gender = 'Gender selection is required *';
+    }
+
+    if (!formData.category) {
+      errors.category = 'Category selection is required *';
+    }
+
+    const cleanMobile = formData.mobile.replace(/\D/g, '');
+    if (!cleanMobile) {
+      errors.mobile = 'Primary Mobile Number is required *';
+    } else if (cleanMobile.length !== 10) {
+      errors.mobile = 'Enter a valid 10-digit mobile number *';
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Email Address is required *';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = 'Enter a valid email address *';
+    }
+
+    if (!formData.address.trim()) {
+      errors.address = 'Permanent Residential Address is required *';
+    }
+
+    if (!formData.district.trim()) {
+      errors.district = 'District is required *';
+    }
+
+    if (!formData.state.trim()) {
+      errors.state = 'State is required *';
+    }
+
+    if (!formData.firstChoice.trim()) {
+      errors.firstChoice = '1st Branch Preference is required *';
+    }
+
+    if (!formData.interCollege.trim()) {
+      errors.interCollege = 'Intermediate / Junior College Name is required *';
+    }
+
+    if (!formData.interPercentage.trim()) {
+      errors.interPercentage = '10+2 MPC Marks / Percentage is required *';
+    }
+
+    if (!declarationAccepted) {
+      errors.declaration = 'You must accept the institutional merit declaration *';
+    }
+
+    if (!paymentData.isPaid) {
+      errors.payment = 'Application fee payment of ₹177 (₹150 + ₹27 GST) is mandatory before submitting *';
+    }
+
+    return errors;
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
-    // Seamless fallback to ensure application is taken reliably
-    const cleanFullName = formData.fullName.trim() || 'Applicant Student';
-    const cleanFatherName = formData.fatherName.trim() || 'Parent / Guardian';
-    const cleanMobile = formData.mobile.trim() || '9876543210';
-    const cleanEmail = formData.email.trim() || `${cleanMobile}@admissions.srec.ac.in`;
-    const cleanInterPercentage = formData.interPercentage.trim() || '85.0%';
-    const cleanInterCollege = formData.interCollege.trim() || 'Junior College, Nandyal';
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setFormError('Please fill in all mandatory fields marked with * and complete the Application Fee payment before submitting.');
 
-    const finalizedData: ApplicationFormData = {
-      ...formData,
-      fullName: cleanFullName,
-      fatherName: cleanFatherName,
-      mobile: cleanMobile,
-      email: cleanEmail,
-      interPercentage: cleanInterPercentage,
-      interCollege: cleanInterCollege,
-      district: formData.district.trim() || 'Nandyal',
-      state: formData.state.trim() || 'Andhra Pradesh',
-    };
+      // Auto-scroll to first invalid element or payment section
+      setTimeout(() => {
+        const firstErrorKey = Object.keys(errors)[0];
+        const errorEl = document.getElementById(firstErrorKey === 'payment' ? 'paymentSection' : firstErrorKey);
+        if (errorEl) {
+          errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 50);
+      return;
+    }
 
+    setFieldErrors({});
     setIsSubmitting(true);
 
     const refNo = `SREC-BTECH-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+
+    const finalizedData: ApplicationFormData = {
+      ...formData,
+      paymentStatus: 'PAID',
+      paymentAmount: paymentData.totalAmount,
+      baseFee: paymentData.baseFee,
+      gstAmount: paymentData.taxAmount,
+      paymentMethod: paymentData.method,
+      transactionId: paymentData.txnId,
+      paymentDate: paymentData.paidAt,
+    };
 
     const applicationRecord = {
       refNo,
@@ -173,7 +298,9 @@ export default function AdmissionsPage() {
     setSubmittedRef(null);
     setSubmittedData(null);
     setFormData(INITIAL_FORM);
+    setPaymentData(INITIAL_PAYMENT);
     setDeclarationAccepted(true);
+    setFieldErrors({});
     setFormError('');
   };
 
@@ -181,7 +308,9 @@ export default function AdmissionsPage() {
     setSubmittedRef(null);
     setSubmittedData(null);
     setFormData(INITIAL_FORM);
+    setPaymentData(INITIAL_PAYMENT);
     setDeclarationAccepted(true);
+    setFieldErrors({});
     setFormError('');
     modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -224,10 +353,22 @@ Campus Hostel Required   : ${submittedData.hostelRequired}
 ---------------------------------------------------------------
 Intermediate College     : ${submittedData.interCollege}
 Board of Examination     : ${submittedData.interBoard}
-Intermediate MPC %       : ${submittedData.interPercentage}%
+Intermediate MPC %       : ${submittedData.interPercentage}
 Entrance Exam            : ${submittedData.entranceExam}
 Entrance Rank            : ${submittedData.entranceRank || 'Direct Merit Application'}
 Hall Ticket Number       : ${submittedData.hallTicketNumber || 'N/A'}
+
+4. APPLICATION FEE & PAYMENT RECEIPT
+---------------------------------------------------------------
+Base Application Fee     : Rs. 150.00
+CGST (9%)                : Rs. 13.50
+SGST (9%)                : Rs. 13.50
+Total GST (18%)          : Rs. 27.00
+Total Amount Paid        : Rs. 177.00
+Payment Status           : PAID & VERIFIED
+Payment Mode             : ${submittedData.paymentMethod || 'Online'}
+Transaction Reference ID : ${submittedData.transactionId || 'N/A'}
+Payment Date             : ${submittedData.paymentDate || 'Recorded'}
 
 ===============================================================
 IMPORTANT INSTRUCTIONS FOR APPLICANT:
@@ -503,8 +644,26 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                         <span className="font-bold text-slate-800 text-xs">{submittedData?.hostelRequired}</span>
                       </div>
                     </div>
+
+                    {/* Verified Fee Payment Card */}
+                    <div className="bg-emerald-50 border border-emerald-300/80 rounded-xl p-3 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-emerald-900 font-black text-xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>Application Fee Paid &bull; ₹{submittedData?.paymentAmount?.toFixed(2) || '177.00'}</span>
+                        </div>
+                        <span className="bg-emerald-200 text-emerald-900 text-[10px] font-bold px-2 py-0.5 rounded">
+                          {submittedData?.paymentMethod || 'Online'}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-emerald-800 flex justify-between items-center">
+                        <span>Breakdown: ₹150 (Base Fee) + ₹27 (18% GST)</span>
+                        <span className="font-mono text-[10px] text-emerald-900">Txn: {submittedData?.transactionId}</span>
+                      </div>
+                    </div>
+
                     <div className="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
-                      <span>Status: <strong className="text-emerald-700 font-bold">Application Received &amp; Queued</strong></span>
+                      <span>Status: <strong className="text-emerald-700 font-bold">Fee Paid &bull; Application Queued</strong></span>
                       <span>{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     </div>
                   </div>
@@ -549,7 +708,7 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                 </div>
               ) : (
                 /* FORM INPUT FIELDS */
-                <form onSubmit={handleFormSubmit} className="space-y-6">
+                <form onSubmit={handleFormSubmit} noValidate className="space-y-6">
                   {/* Quick Auto Fill Option */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 bg-gradient-to-r from-amber-50 to-blue-50 border border-amber-200/80 rounded-2xl text-xs">
                     <div className="flex items-center gap-2 text-slate-800 font-medium">
@@ -566,82 +725,143 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                   </div>
 
                   {formError && (
-                    <div className="p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium">
-                      {formError}
+                    <div className="p-3.5 bg-red-50 border border-red-300 text-red-800 text-xs rounded-xl font-semibold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                      <span>{formError}</span>
                     </div>
                   )}
 
                   {/* Section 1: Candidate Personal Details */}
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
-                      <User className="w-4 h-4 text-blue-700" />
-                      <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider">
-                        1. Personal Particulars
-                      </h3>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-200">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-blue-700" />
+                        <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider">
+                          1. Personal Particulars
+                        </h3>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Fields marked with <span className="text-red-500 font-bold">*</span> are mandatory
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">
-                          Candidate Full Name <span className="text-blue-700 font-normal">(as per SSC)</span>
+                        <label className="text-xs font-bold text-slate-700" htmlFor="fullName">
+                          Candidate Full Name <span className="text-red-500 font-bold">*</span>{' '}
+                          <span className="text-slate-400 font-normal">(as per SSC)</span>
                         </label>
                         <input
+                          id="fullName"
                           type="text"
                           name="fullName"
                           placeholder="e.g. Rahul Sharma"
                           value={formData.fullName}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.fullName
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.fullName && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.fullName}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">
-                          Father&rsquo;s / Guardian&rsquo;s Name
+                        <label className="text-xs font-bold text-slate-700" htmlFor="fatherName">
+                          Father&rsquo;s / Guardian&rsquo;s Name <span className="text-red-500 font-bold">*</span>
                         </label>
                         <input
+                          id="fatherName"
                           type="text"
                           name="fatherName"
                           placeholder="e.g. S. Ramakrishna Sharma"
                           value={formData.fatherName}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.fatherName
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.fatherName && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.fatherName}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Date of Birth</label>
+                        <label className="text-xs font-bold text-slate-700" htmlFor="dob">
+                          Date of Birth <span className="text-red-500 font-bold">*</span>
+                        </label>
                         <input
+                          id="dob"
                           type="date"
                           name="dob"
                           value={formData.dob}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.dob
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.dob && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.dob}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700">Gender</label>
+                          <label className="text-xs font-bold text-slate-700" htmlFor="gender">
+                            Gender <span className="text-red-500 font-bold">*</span>
+                          </label>
                           <select
+                            id="gender"
                             name="gender"
                             value={formData.gender}
                             onChange={handleInputChange}
-                            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium"
+                            className={`w-full text-xs p-2.5 rounded-xl border ${
+                              fieldErrors.gender
+                                ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                                : 'border-slate-200 bg-slate-50'
+                            } focus:bg-white font-medium`}
                           >
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                           </select>
+                          {fieldErrors.gender && (
+                            <p className="text-[10px] font-semibold text-red-600 mt-0.5">
+                              {fieldErrors.gender}
+                            </p>
+                          )}
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700">Category</label>
+                          <label className="text-xs font-bold text-slate-700" htmlFor="category">
+                            Category <span className="text-red-500 font-bold">*</span>
+                          </label>
                           <select
+                            id="category"
                             name="category"
                             value={formData.category}
                             onChange={handleInputChange}
-                            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium"
+                            className={`w-full text-xs p-2.5 rounded-xl border ${
+                              fieldErrors.category
+                                ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                                : 'border-slate-200 bg-slate-50'
+                            } focus:bg-white font-medium`}
                           >
                             <option value="OC">OC</option>
                             <option value="BC-A">BC-A</option>
@@ -652,29 +872,46 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                             <option value="SC">SC</option>
                             <option value="ST">ST</option>
                           </select>
+                          {fieldErrors.category && (
+                            <p className="text-[10px] font-semibold text-red-600 mt-0.5">
+                              {fieldErrors.category}
+                            </p>
+                          )}
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">
-                          Primary Mobile Number
+                        <label className="text-xs font-bold text-slate-700" htmlFor="mobile">
+                          Primary Mobile Number <span className="text-red-500 font-bold">*</span>
                         </label>
                         <input
+                          id="mobile"
                           type="tel"
                           name="mobile"
                           maxLength={10}
                           placeholder="e.g. 9876543210"
                           value={formData.mobile}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.mobile
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.mobile && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.mobile}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">
-                          WhatsApp Mobile Number
+                        <label className="text-xs font-bold text-slate-700" htmlFor="whatsapp">
+                          WhatsApp Mobile Number <span className="text-slate-400 font-normal">(Optional)</span>
                         </label>
                         <input
+                          id="whatsapp"
                           type="tel"
                           name="whatsapp"
                           maxLength={10}
@@ -686,54 +923,102 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                       </div>
 
                       <div className="space-y-1 sm:col-span-2">
-                        <label className="text-xs font-bold text-slate-700">
-                          Email Address
+                        <label className="text-xs font-bold text-slate-700" htmlFor="email">
+                          Email Address <span className="text-red-500 font-bold">*</span>
                         </label>
                         <input
+                          id="email"
                           type="email"
                           name="email"
                           placeholder="candidate@example.com"
                           value={formData.email}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.email
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.email && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.email}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1 sm:col-span-2">
-                        <label className="text-xs font-bold text-slate-700">
-                          Permanent Residential Address
+                        <label className="text-xs font-bold text-slate-700" htmlFor="address">
+                          Permanent Residential Address <span className="text-red-500 font-bold">*</span>
                         </label>
                         <input
+                          id="address"
                           type="text"
                           name="address"
                           placeholder="Door No, Street, Village/Town"
                           value={formData.address}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.address
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.address && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.address}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">District</label>
+                        <label className="text-xs font-bold text-slate-700" htmlFor="district">
+                          District <span className="text-red-500 font-bold">*</span>
+                        </label>
                         <input
+                          id="district"
                           type="text"
                           name="district"
                           placeholder="e.g. Nandyal, Kurnool, Kadapa"
                           value={formData.district}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.district
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.district && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.district}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">State</label>
+                        <label className="text-xs font-bold text-slate-700" htmlFor="state">
+                          State <span className="text-red-500 font-bold">*</span>
+                        </label>
                         <input
+                          id="state"
                           type="text"
                           name="state"
                           value={formData.state}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.state
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.state && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.state}</span>
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -749,14 +1034,19 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">
-                          1st Branch Preference <span className="text-red-500">*</span>
+                        <label className="text-xs font-bold text-slate-700" htmlFor="firstChoice">
+                          1st Branch Preference <span className="text-red-500 font-bold">*</span>
                         </label>
                         <select
+                          id="firstChoice"
                           name="firstChoice"
                           value={formData.firstChoice}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.firstChoice
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white font-medium`}
                         >
                           <option value="CSE - Computer Science & Engineering">CSE - Computer Science &amp; Engineering</option>
                           <option value="CSM - Artificial Intelligence & Machine Learning">CSM - Artificial Intelligence &amp; ML</option>
@@ -766,13 +1056,20 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                           <option value="ME - Mechanical Engineering">ME - Mechanical Engineering</option>
                           <option value="CE - Civil Engineering">CE - Civil Engineering</option>
                         </select>
+                        {fieldErrors.firstChoice && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.firstChoice}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">
+                        <label className="text-xs font-bold text-slate-700" htmlFor="secondChoice">
                           2nd Branch Preference
                         </label>
                         <select
+                          id="secondChoice"
                           name="secondChoice"
                           value={formData.secondChoice}
                           onChange={handleInputChange}
@@ -829,22 +1126,36 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div className="space-y-1 sm:col-span-2">
-                        <label className="text-xs font-bold text-slate-700">
-                          Intermediate / +2 Junior College Name &amp; Town
+                        <label className="text-xs font-bold text-slate-700" htmlFor="interCollege">
+                          Intermediate / +2 Junior College Name &amp; Town <span className="text-red-500 font-bold">*</span>
                         </label>
                         <input
+                          id="interCollege"
                           type="text"
                           name="interCollege"
                           placeholder="e.g. Narayana / Sri Chaitanya Junior College, Nandyal"
                           value={formData.interCollege}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.interCollege
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.interCollege && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.interCollege}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Intermediate Board</label>
+                        <label className="text-xs font-bold text-slate-700" htmlFor="interBoard">
+                          Intermediate Board <span className="text-red-500 font-bold">*</span>
+                        </label>
                         <select
+                          id="interBoard"
                           name="interBoard"
                           value={formData.interBoard}
                           onChange={handleInputChange}
@@ -859,22 +1170,36 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">
-                          10+2 MPC Marks / Percentage (%)
+                        <label className="text-xs font-bold text-slate-700" htmlFor="interPercentage">
+                          10+2 MPC Marks / Percentage (%) <span className="text-red-500 font-bold">*</span>
                         </label>
                         <input
+                          id="interPercentage"
                           type="text"
                           name="interPercentage"
                           placeholder="e.g. 88.5% or 920/1000"
                           value={formData.interPercentage}
                           onChange={handleInputChange}
-                          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 outline-hidden font-medium"
+                          className={`w-full text-xs p-2.5 rounded-xl border ${
+                            fieldErrors.interPercentage
+                              ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                              : 'border-slate-200 bg-slate-50'
+                          } focus:bg-white focus:border-blue-600 outline-hidden font-medium`}
                         />
+                        {fieldErrors.interPercentage && (
+                          <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0 text-red-500" />
+                            <span>{fieldErrors.interPercentage}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Competitive Entrance Exam</label>
+                        <label className="text-xs font-bold text-slate-700" htmlFor="entranceExam">
+                          Competitive Entrance Exam
+                        </label>
                         <select
+                          id="entranceExam"
                           name="entranceExam"
                           value={formData.entranceExam}
                           onChange={handleInputChange}
@@ -887,10 +1212,11 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">
-                          Entrance Rank (if qualified)
+                        <label className="text-xs font-bold text-slate-700" htmlFor="entranceRank">
+                          Entrance Rank <span className="text-slate-400 font-normal">(if qualified)</span>
                         </label>
                         <input
+                          id="entranceRank"
                           type="text"
                           name="entranceRank"
                           placeholder="e.g. 24810 or Awaiting Results"
@@ -902,23 +1228,67 @@ IMPORTANT INSTRUCTIONS FOR APPLICANT:
                     </div>
                   </div>
 
+                  {/* Section 4: Application Fee & Payment Details */}
+                  <ApplicationFeePayment
+                    baseFee={150}
+                    taxPercent={18}
+                    applicantName={formData.fullName}
+                    applicantMobile={formData.mobile}
+                    paymentData={paymentData}
+                    hasError={Boolean(fieldErrors.payment)}
+                    onPaymentSuccess={(record) => {
+                      setPaymentData(record);
+                      if (fieldErrors.payment) {
+                        setFieldErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.payment;
+                          return next;
+                        });
+                      }
+                      if (formError && !Object.keys(fieldErrors).some((k) => k !== 'payment')) {
+                        setFormError('');
+                      }
+                    }}
+                    onResetPayment={() => {
+                      setPaymentData(INITIAL_PAYMENT);
+                    }}
+                  />
+
                   {/* Declaration & Submission */}
                   <div className="pt-3 border-t border-slate-200 space-y-4">
-                    <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none">
+                    <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none" htmlFor="declaration">
                       <input
+                        id="declaration"
                         type="checkbox"
                         checked={declarationAccepted}
-                        onChange={(e) => setDeclarationAccepted(e.target.checked)}
+                        onChange={(e) => {
+                          setDeclarationAccepted(e.target.checked);
+                          if (e.target.checked && fieldErrors.declaration) {
+                            setFieldErrors((prev) => {
+                              const next = { ...prev };
+                              delete next.declaration;
+                              return next;
+                            });
+                          }
+                        }}
                         className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
                       <span className="leading-relaxed">
-                        I hereby declare that all the information provided above is authentic. I wish to apply for B.Tech admission at <strong>Santhiram Engineering College (Autonomous), Nandyal</strong> under Institutional Merit (Category-B) for 2026-2027.
+                        I hereby declare that all the information provided above is authentic. I wish to apply for B.Tech admission at <strong>Santhiram Engineering College (Autonomous), Nandyal</strong> under Institutional Merit (Category-B) for 2026-2027. <span className="text-red-500 font-bold">*</span>
                       </span>
                     </label>
 
+                    {fieldErrors.declaration && (
+                      <p className="text-[11px] font-semibold text-red-600 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+                        <span>{fieldErrors.declaration}</span>
+                      </p>
+                    )}
+
                     {formError && (
-                      <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium">
-                        {formError}
+                      <div className="p-3.5 bg-red-50 border border-red-300 text-red-800 text-xs rounded-xl font-semibold flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                        <span>{formError}</span>
                       </div>
                     )}
 
