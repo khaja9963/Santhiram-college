@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   Search, User as UserIcon, Menu, X, ChevronDown,
   GraduationCap, BookOpen, Building2, PhoneCall, Award,
-  Sparkles, ExternalLink, Lock, ArrowRight
+  Sparkles, ExternalLink, Lock, ArrowRight, Shield
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { assetUrl } from '@/lib/assets';
@@ -210,14 +210,25 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
                 </button>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="flex items-center gap-1.5 bg-[#0B2545] hover:bg-[#134074] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all border border-blue-800/50 hover:shadow"
-                title="Student, Faculty & Staff Portal Sign In"
-              >
-                <Lock className="w-3.5 h-3.5 text-amber-400" />
-                <span>Student / Faculty Login</span>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="flex items-center gap-1.5 bg-[#0B2545] hover:bg-[#134074] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all border border-blue-800/50 hover:shadow"
+                  title="Student, Faculty & Staff Portal Sign In"
+                >
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Student / Faculty Login</span>
+                </Link>
+
+                <Link
+                  href="/admin/login"
+                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-amber-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all border border-amber-500/30 hover:border-amber-500/60"
+                  title="Administrator Authority Sign In"
+                >
+                  <Shield className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Admin Login</span>
+                </Link>
+              </div>
             )}
 
             {/* Mobile Menu Hamburger */}
@@ -284,28 +295,22 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Link
-                    href="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 bg-[#0B2545] hover:bg-[#134074] text-white px-3.5 py-2.5 rounded-lg text-xs font-bold shadow-xs"
-                  >
-                    <Lock className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Student &amp; Faculty Login</span>
-                  </Link>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <Link
-                      href="/login?role=student"
+                      href="/login"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="text-center bg-white hover:bg-slate-100 text-slate-800 text-[11px] font-semibold py-1.5 rounded-md border border-slate-200"
+                      className="flex items-center justify-center gap-2 bg-[#0B2545] hover:bg-[#134074] text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow-xs"
                     >
-                      Student Sign In
+                      <Lock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Student &amp; Faculty Login</span>
                     </Link>
                     <Link
-                      href="/login?role=faculty"
+                      href="/admin/login"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="text-center bg-white hover:bg-slate-100 text-slate-800 text-[11px] font-semibold py-1.5 rounded-md border border-slate-200"
+                      className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-amber-400 px-3.5 py-2 rounded-lg text-xs font-bold border border-amber-500/30"
                     >
-                      Faculty Sign In
+                      <Shield className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Admin Login</span>
                     </Link>
                   </div>
                 </div>
