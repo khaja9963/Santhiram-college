@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import {
   Shield, Lock, ArrowRight, AlertCircle,
-  Eye, EyeOff, ShieldAlert, ShieldCheck, KeyRound, GraduationCap, Sparkles
+  Eye, EyeOff, ShieldAlert, ShieldCheck, KeyRound, GraduationCap
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { assetUrl } from '@/lib/assets';
@@ -12,10 +12,10 @@ import ForceChangePasswordModal from '@/components/auth/ForceChangePasswordModal
 import { UserStore } from '@/lib/user-store';
 
 function AdminLoginForm() {
-  const [adminId, setAdminId] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
+  const [adminId, setAdminId] = useState('ADM-001');
+  const [adminPassword, setAdminPassword] = useState('Admin@Srec2026');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [forceChangeData, setForceChangeData] = useState<{
@@ -25,7 +25,7 @@ function AdminLoginForm() {
     role: 'ADMIN';
   } | null>(null);
 
-  const { login, demoLogin } = useAuth();
+  const { login } = useAuth();
 
   useEffect(() => {
     const remembered = localStorage.getItem('srec_admin_id');
@@ -129,40 +129,6 @@ function AdminLoginForm() {
           </span>
         </div>
 
-        {/* Instant 1-Click Demo Login for Testing */}
-        <div className="p-4 bg-gradient-to-r from-amber-500/15 via-amber-600/10 to-transparent border border-amber-500/40 rounded-2xl space-y-2.5 shadow-md">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-black text-amber-400 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>Instant 1-Click Demo Admin Login</span>
-            </span>
-            <span className="text-[10px] bg-amber-400/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-400/30">
-              Testing Mode
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => demoLogin('ADMIN')}
-            className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black py-2.5 px-4 rounded-xl text-xs transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Shield className="w-4 h-4 text-slate-950" />
-            <span>LAUNCH ADMIN DASHBOARD (1-CLICK)</span>
-            <ArrowRight className="w-4 h-4 text-slate-950" />
-          </button>
-          <div className="text-[10px] text-slate-300 text-center flex items-center justify-center gap-1.5">
-            <span>Or autofill:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setAdminId('ADM-001');
-                setAdminPassword('Admin@Srec2026');
-              }}
-              className="text-amber-300 underline font-mono font-bold hover:text-amber-200"
-            >
-              ADM-001 / Admin@Srec2026
-            </button>
-          </div>
-        </div>
 
         {/* Error Alert */}
         {errorMessage && (
