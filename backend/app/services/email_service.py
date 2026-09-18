@@ -169,3 +169,38 @@ def send_status_change_email(email: str, name: str, new_status: str, reason: Opt
     )
     text = f"Hello {name},\n\nYour SREC account status has changed to: {new_status}.\nReason: {reason or 'N/A'}"
     return _send_email_smtp(email, subject, html, text)
+
+
+def send_credentials_email(email: str, name: str, user_code: str, temp_password: str, role: str) -> bool:
+    subject = f"Official SREC Smart Campus Login Credentials - {role.title()} Access Approved"
+    login_url = f"{settings.FRONTEND_URL}/login"
+    
+    html = _get_base_template(
+        "SREC Portal Login Credentials",
+        f"""
+        <h2 style="color: #0f172a; margin-top: 0;">Congratulations, {name}!</h2>
+        <p>Your institutional portal access request has been reviewed and approved by the SREC Central Administration.</p>
+        <p>Please use the following login credentials to access your {role.title()} Portal:</p>
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin: 16px 0;">
+          <p style="margin: 4px 0;"><strong>Portal Login URL:</strong> <a href="{login_url}" style="color: #2563eb;">{login_url}</a></p>
+          <p style="margin: 4px 0;"><strong>Assigned Login ID:</strong> <span class="code-box" style="margin: 2px 0;">{user_code}</span></p>
+          <p style="margin: 4px 0;"><strong>Temporary Password:</strong> <span class="code-box" style="margin: 2px 0; color: #dc2626;">{temp_password}</span></p>
+        </div>
+        <p style="color: #b91c1c; font-size: 13px; font-weight: 600;">
+          * Mandatory Security Requirement: Upon your first sign in with this temporary password, you will be required to change it and set your own secure private password.
+        </p>
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="{login_url}" class="btn" target="_blank">Login to SREC Portal</a>
+        </div>
+        """
+    )
+    text = (
+        f"Dear {name},\n\n"
+        f"Your SREC Smart Campus portal access request has been approved.\n\n"
+        f"Portal URL: {login_url}\n"
+        f"Login ID: {user_code}\n"
+        f"Temporary Password: {temp_password}\n\n"
+        f"Please change your password immediately upon your first sign in.\n\n"
+        f"Regards,\nCentral Administration, Santhiram Engineering College, Nandyal"
+    )
+    return _send_email_smtp(email, subject, html, text)

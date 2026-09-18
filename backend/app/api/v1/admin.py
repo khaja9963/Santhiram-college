@@ -16,8 +16,9 @@ from app.schemas.all_schemas import (
 from app.api.deps import require_role
 from app.ai.rag_engine import rag_engine
 from app.core.security import generate_secure_token
+from pydantic import BaseModel
 from app.services.email_service import (
-    send_activation_email, send_account_recovery_email, send_status_change_email
+    send_activation_email, send_account_recovery_email, send_status_change_email, send_credentials_email
 )
 from app.services.audit_service import log_audit
 
@@ -823,3 +824,26 @@ def delete_document(
     db.delete(doc)
     db.commit()
     return {"status": "SUCCESS", "message": f"Document '{doc.title}' deleted from Knowledge Base."}
+
+
+class SendCredentialsPayload(BaseModel):
+    email: str
+    name: str
+    user_code: str
+    temp_password: str
+    role: str
+
+
+@router.post("/send-credentials-email")
+def api_send_credentials_email(
+    payload: SendCredentialsPayload,
+    current_user: User = Depends(require_role(["ADMIN"])),
+):
+    ok = send_credentials_email(
+        email=payload.email,
+        name=payload.name,
+        user_code=payload.user_code,
+        temp_password=payload.temp_password,
+        role=payload.role,
+    )
+    return {"success": ok, "message": "Credentials email dispatched successfully."}

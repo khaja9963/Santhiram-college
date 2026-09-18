@@ -212,7 +212,7 @@ export default function AdminUsersPage() {
     setTempPassword(UserStore.generateRandomPassword());
   };
 
-  const handleApproveAndSendEmail = () => {
+  const handleApproveAndSendEmail = async () => {
     if (!selectedReq) return;
     if (!assignedLoginId.trim()) {
       alert('Please provide a valid Login ID for the user.');
@@ -226,9 +226,23 @@ export default function AdminUsersPage() {
     setIsProcessingAction(true);
     try {
       const res = UserStore.approveRequest(selectedReq.id, assignedLoginId.trim(), tempPassword.trim());
+      
+      // Attempt backend SMTP dispatch if configured
+      try {
+        await AdminAPI.sendCredentialsEmail({
+          email: selectedReq.email,
+          name: selectedReq.fullName,
+          user_code: assignedLoginId.trim(),
+          temp_password: tempPassword.trim(),
+          role: selectedReq.type,
+        });
+      } catch (smtpErr) {
+        console.warn('Backend SMTP offline or credentials not set in backend/.env:', smtpErr);
+      }
+
       if (res.success) {
         setActionSuccess(
-          `Success! Access approved for ${selectedReq.fullName}. Login ID (${assignedLoginId.trim()}) and temporary password have been dispatched to ${selectedReq.email}. First-time login password change is enforced.`
+          `Success! Access approved for ${selectedReq.fullName}. Login ID (${assignedLoginId.trim()}) and temporary password issued. Check the Dispatched Credentials tab to preview or send directly via Gmail/Outlook!`
         );
         setSelectedReq(null);
         loadRequests();
@@ -1218,10 +1232,47 @@ export default function AdminUsersPage() {
               </p>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(selectedEmail.to)}&su=${encodeURIComponent(selectedEmail.subject)}&body=${encodeURIComponent(
+                    `Dear ${selectedEmail.recipientName},\n\nYour institutional portal access request for Santhiram Engineering College (Autonomous) has been approved.\n\nPortal Login URL: https://khaja9963.github.io/Santhiram-college/login/\nAssigned Login ID: ${selectedEmail.loginId}\nTemporary Password: ${selectedEmail.tempPassword}\n\n* Security Notice: You are required to change this temporary password to your own private password upon your first sign in.\n\nWarm regards,\nCentral ICT Administration,\nSanthiram Engineering College (Autonomous), Nandyal.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Send via Gmail</span>
+                </a>
+
+                <a
+                  href={`mailto:${encodeURIComponent(selectedEmail.to)}?subject=${encodeURIComponent(selectedEmail.subject)}&body=${encodeURIComponent(
+                    `Dear ${selectedEmail.recipientName},\n\nYour institutional portal access request for Santhiram Engineering College (Autonomous) has been approved.\n\nPortal Login URL: https://khaja9963.github.io/Santhiram-college/login/\nAssigned Login ID: ${selectedEmail.loginId}\nTemporary Password: ${selectedEmail.tempPassword}\n\n* Security Notice: You are required to change this temporary password to your own private password upon your first sign in.\n\nWarm regards,\nCentral ICT Administration,\nSanthiram Engineering College (Autonomous), Nandyal.`
+                  )}`}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Send via Mail App</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = `Dear ${selectedEmail.recipientName},\n\nYour institutional portal access request for Santhiram Engineering College (Autonomous) has been approved.\n\nPortal Login URL: https://khaja9963.github.io/Santhiram-college/login/\nAssigned Login ID: ${selectedEmail.loginId}\nTemporary Password: ${selectedEmail.tempPassword}\n\n* Security Notice: You are required to change this temporary password to your own private password upon your first sign in.\n\nWarm regards,\nCentral ICT Administration,\nSanthiram Engineering College (Autonomous), Nandyal.`;
+                    navigator.clipboard.writeText(text);
+                    alert('Credentials email text copied to clipboard! You can paste it into WhatsApp or email.');
+                  }}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy Text</span>
+                </button>
+              </div>
+
               <button
                 onClick={() => setSelectedEmail(null)}
-                className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-xl text-xs font-bold"
+                className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-xl text-xs font-bold ml-auto cursor-pointer"
               >
                 Close
               </button>

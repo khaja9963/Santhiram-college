@@ -165,6 +165,8 @@ export const AdminAPI = {
     apiFetch<any>(`/admin/users/${id}/resend-activation`, { method: 'POST' }),
   resetAccount: (id: string) =>
     apiFetch<any>(`/admin/users/${id}/reset-account`, { method: 'POST' }),
+  sendCredentialsEmail: (data: { email: string; name: string; user_code: string; temp_password: string; role: string }) =>
+    apiFetch<any>('/admin/send-credentials-email', { method: 'POST', body: JSON.stringify(data) }),
   getAuditLogs: (params: { user_id?: string; action?: string; role?: string; page?: number; limit?: number } = {}) => {
     const query = new URLSearchParams();
     if (params.user_id) query.set('user_id', params.user_id);
