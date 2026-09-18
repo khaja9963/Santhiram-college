@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   Search, User as UserIcon, Menu, X, ChevronDown,
   GraduationCap, BookOpen, Building2, PhoneCall, Award,
-  Sparkles, ExternalLink, Lock, ArrowRight, Shield
+  Sparkles, ExternalLink, Lock, ArrowRight, Shield, Briefcase
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { assetUrl } from '@/lib/assets';
@@ -210,23 +210,32 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
-                  href="/login"
-                  className="flex items-center gap-1.5 bg-[#0B2545] hover:bg-[#134074] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all border border-blue-800/50 hover:shadow"
-                  title="Student, Faculty & Staff Portal Sign In"
+                  href="/student/login"
+                  className="flex items-center gap-1.5 bg-[#0B2545] hover:bg-blue-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-all border border-blue-800/60"
+                  title="Student Portal Sign In"
                 >
-                  <Lock className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Student / Faculty Login</span>
+                  <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden sm:inline">Student</span> Login
+                </Link>
+
+                <Link
+                  href="/faculty/login"
+                  className="flex items-center gap-1.5 bg-indigo-900 hover:bg-indigo-950 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-all border border-indigo-700/60"
+                  title="Faculty Portal Sign In"
+                >
+                  <Briefcase className="w-3.5 h-3.5 text-indigo-300" />
+                  <span className="hidden sm:inline">Faculty</span> Login
                 </Link>
 
                 <Link
                   href="/admin/login"
-                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-amber-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all border border-amber-500/30 hover:border-amber-500/60"
+                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-amber-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-all border border-amber-500/30 hover:border-amber-500/60"
                   title="Administrator Authority Sign In"
                 >
                   <Shield className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Admin Login</span>
+                  <span className="hidden sm:inline">Admin</span> Login
                 </Link>
               </div>
             )}
@@ -295,14 +304,22 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2">
                     <Link
-                      href="/login"
+                      href="/student/login"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center justify-center gap-2 bg-[#0B2545] hover:bg-[#134074] text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow-xs"
+                      className="flex items-center justify-center gap-2 bg-[#0B2545] hover:bg-blue-900 text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow-xs"
                     >
-                      <Lock className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Student &amp; Faculty Login</span>
+                      <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Student Portal Login</span>
+                    </Link>
+                    <Link
+                      href="/faculty/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-center gap-2 bg-indigo-900 hover:bg-indigo-950 text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow-xs"
+                    >
+                      <Briefcase className="w-3.5 h-3.5 text-indigo-300" />
+                      <span>Faculty Portal Login</span>
                     </Link>
                     <Link
                       href="/admin/login"
@@ -310,7 +327,7 @@ export default function Navbar({ onOpenSearch, onOpenAI }: NavbarProps) {
                       className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-amber-400 px-3.5 py-2 rounded-lg text-xs font-bold border border-amber-500/30"
                     >
                       <Shield className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Admin Login</span>
+                      <span>Administrator Authority Login</span>
                     </Link>
                   </div>
                 </div>

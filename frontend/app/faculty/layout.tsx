@@ -26,6 +26,11 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
     { label: 'Security & Password', href: '/settings/security', icon: ShieldCheck },
   ];
 
+  // Standalone login route for faculty
+  if (pathname === '/faculty/login') {
+    return <>{children}</>;
+  }
+
   if (!isLoading && (!token || (role !== 'FACULTY' && role !== 'ADMIN'))) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-slate-100">
@@ -39,7 +44,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
           </p>
           <div className="pt-2 flex flex-col gap-2">
             <Link
-              href="/login"
+              href="/faculty/login"
               className="w-full bg-[#0B2545] hover:bg-blue-900 text-white font-bold py-2.5 rounded-xl text-xs"
             >
               Sign In as Faculty

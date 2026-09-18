@@ -10,10 +10,15 @@ import { UserStore, AccessRequest } from '@/lib/user-store';
 interface RequestAccessModalProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultType?: 'STUDENT' | 'FACULTY';
 }
 
-export default function RequestAccessModal({ isOpen, onClose }: RequestAccessModalProps) {
-  const [activeTab, setActiveTab] = useState<'STUDENT' | 'FACULTY'>('STUDENT');
+export default function RequestAccessModal({ isOpen, onClose, defaultType = 'STUDENT' }: RequestAccessModalProps) {
+  const [activeTab, setActiveTab] = useState<'STUDENT' | 'FACULTY'>(defaultType);
+
+  React.useEffect(() => {
+    if (defaultType) setActiveTab(defaultType);
+  }, [defaultType, isOpen]);
 
   // Student Form State
   const [studentName, setStudentName] = useState('');
