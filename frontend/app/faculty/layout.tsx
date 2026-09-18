@@ -27,7 +27,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
   ];
 
   // Standalone login route for faculty
-  if (pathname === '/faculty/login') {
+  if (pathname?.startsWith('/faculty/login')) {
     return <>{children}</>;
   }
 

@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   // Standalone public login route for administrators
-  if (pathname === '/admin/login') {
+  if (pathname?.startsWith('/admin/login')) {
     return <>{children}</>;
   }
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   User, Lock, ArrowRight, AlertCircle, Eye, EyeOff,
-  GraduationCap, Briefcase, KeyRound, ShieldCheck
+  GraduationCap, Briefcase, KeyRound, ShieldCheck, Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { assetUrl } from '@/lib/assets';
@@ -41,7 +41,7 @@ function UnifiedAcademicLoginForm() {
     role: 'STUDENT' | 'FACULTY';
   } | null>(null);
 
-  const { login } = useAuth();
+  const { login, demoLogin } = useAuth();
 
   useEffect(() => {
     const roleParam = searchParams.get('role');
@@ -237,6 +237,18 @@ function UnifiedAcademicLoginForm() {
               </span>
             </div>
 
+            {/* 1-Click Student Demo Login */}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl space-y-1.5">
+              <button
+                type="button"
+                onClick={() => demoLogin('STUDENT')}
+                className="w-full bg-[#0B2545] hover:bg-blue-900 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Launch Student Dashboard (1-Click Demo)</span>
+              </button>
+            </div>
+
             {studentError && (
               <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2 animate-in fade-in">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
@@ -353,6 +365,18 @@ function UnifiedAcademicLoginForm() {
               <span className="text-[10px] bg-indigo-100 text-indigo-900 font-bold px-2 py-0.5 rounded-full">
                 Teaching Staff
               </span>
+            </div>
+
+            {/* 1-Click Faculty Demo Login */}
+            <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-2xl space-y-1.5">
+              <button
+                type="button"
+                onClick={() => demoLogin('FACULTY')}
+                className="w-full bg-indigo-900 hover:bg-indigo-950 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Launch Faculty Dashboard (1-Click Demo)</span>
+              </button>
             </div>
 
             {facultyError && (

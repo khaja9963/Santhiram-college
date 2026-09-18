@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import {
   User, Lock, ArrowRight, AlertCircle, Eye, EyeOff,
-  Briefcase, KeyRound, ShieldCheck, GraduationCap
+  Briefcase, KeyRound, ShieldCheck, GraduationCap, Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { assetUrl } from '@/lib/assets';
@@ -27,7 +27,7 @@ function FacultyLoginForm() {
     role: 'FACULTY';
   } | null>(null);
 
-  const { login } = useAuth();
+  const { login, demoLogin } = useAuth();
 
   useEffect(() => {
     const remembered = localStorage.getItem('srec_faculty_id');
@@ -134,6 +134,41 @@ function FacultyLoginForm() {
           <span className="text-[10px] bg-indigo-100 text-indigo-900 font-bold px-2 py-0.5 rounded-full">
             Teaching Staff
           </span>
+        </div>
+
+        {/* Instant 1-Click Demo Login for Testing */}
+        <div className="p-3.5 bg-gradient-to-r from-indigo-50 to-purple-50/50 border border-indigo-200 rounded-2xl space-y-2 shadow-xs">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-indigo-950 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-indigo-700" />
+              <span>Instant 1-Click Faculty Demo Login</span>
+            </span>
+            <span className="text-[10px] bg-indigo-200 text-indigo-900 font-bold px-2 py-0.5 rounded-full">
+              Testing Mode
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => demoLogin('FACULTY')}
+            className="w-full bg-indigo-900 hover:bg-indigo-950 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-xs active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Briefcase className="w-4 h-4 text-amber-400" />
+            <span>LAUNCH FACULTY DASHBOARD (1-CLICK)</span>
+            <ArrowRight className="w-4 h-4 text-amber-400" />
+          </button>
+          <div className="text-[10px] text-slate-500 text-center flex items-center justify-center gap-1.5">
+            <span>Or autofill:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setEmpId('FAC-0104');
+                setPassword('Faculty@Srec2026');
+              }}
+              className="text-indigo-700 underline font-mono font-bold hover:text-indigo-900"
+            >
+              FAC-0104 / Faculty@Srec2026
+            </button>
+          </div>
         </div>
 
         {/* Error Alert */}

@@ -31,7 +31,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   ];
 
   // Standalone login route for students
-  if (pathname === '/student/login') {
+  if (pathname?.startsWith('/student/login')) {
     return <>{children}</>;
   }
 

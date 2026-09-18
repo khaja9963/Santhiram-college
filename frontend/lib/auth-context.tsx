@@ -110,15 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(demoToken);
     setIsLoading(false);
 
-    if (asRole === 'ADMIN') {
-      router.push('/admin/dashboard');
-    } else if (asRole === 'STUDENT') {
-      router.push('/student/dashboard');
-    } else if (asRole === 'FACULTY') {
-      router.push('/faculty/dashboard');
-    } else {
-      router.push('/');
-    }
+    const dest = asRole === 'ADMIN' ? '/admin/dashboard/' : asRole === 'STUDENT' ? '/student/dashboard/' : '/faculty/dashboard/';
+    router.push(dest);
     return { success: true };
   };
 
@@ -149,15 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Redirect based on role
-      if (res.role === 'ADMIN') {
-        router.push('/admin/dashboard');
-      } else if (res.role === 'STUDENT') {
-        router.push('/student/dashboard');
-      } else if (res.role === 'FACULTY') {
-        router.push('/faculty/dashboard');
-      } else {
-        router.push('/');
-      }
+      const dest = res.role === 'ADMIN' ? '/admin/dashboard/' : res.role === 'STUDENT' ? '/student/dashboard/' : '/faculty/dashboard/';
+      router.push(dest);
 
       return { success: true, first_login: res.first_login };
     } catch (err: any) {
@@ -190,13 +176,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { success: true, first_login: true };
         }
 
-        if (u.role === 'ADMIN') {
-          router.push('/admin/dashboard');
-        } else if (u.role === 'STUDENT') {
-          router.push('/student/dashboard');
-        } else if (u.role === 'FACULTY') {
-          router.push('/faculty/dashboard');
-        }
+        const dest = u.role === 'ADMIN' ? '/admin/dashboard/' : u.role === 'STUDENT' ? '/student/dashboard/' : '/faculty/dashboard/';
+        router.push(dest);
         return { success: true, first_login: false };
       }
 

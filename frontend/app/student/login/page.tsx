@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import {
   User, Lock, ArrowRight, AlertCircle, Eye, EyeOff,
-  GraduationCap, KeyRound, ShieldCheck, Briefcase
+  GraduationCap, KeyRound, ShieldCheck, Briefcase, Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { assetUrl } from '@/lib/assets';
@@ -27,7 +27,7 @@ function StudentLoginForm() {
     role: 'STUDENT';
   } | null>(null);
 
-  const { login } = useAuth();
+  const { login, demoLogin } = useAuth();
 
   useEffect(() => {
     const remembered = localStorage.getItem('srec_student_id');
@@ -134,6 +134,41 @@ function StudentLoginForm() {
           <span className="text-[10px] bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full">
             B.Tech / MBA
           </span>
+        </div>
+
+        {/* Instant 1-Click Demo Login for Testing */}
+        <div className="p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50/50 border border-blue-200 rounded-2xl space-y-2 shadow-xs">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-blue-900 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-blue-700" />
+              <span>Instant 1-Click Student Demo Login</span>
+            </span>
+            <span className="text-[10px] bg-blue-200 text-blue-900 font-bold px-2 py-0.5 rounded-full">
+              Testing Mode
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => demoLogin('STUDENT')}
+            className="w-full bg-[#0B2545] hover:bg-blue-900 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-xs active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <GraduationCap className="w-4 h-4 text-amber-400" />
+            <span>LAUNCH STUDENT DASHBOARD (1-CLICK)</span>
+            <ArrowRight className="w-4 h-4 text-amber-400" />
+          </button>
+          <div className="text-[10px] text-slate-500 text-center flex items-center justify-center gap-1.5">
+            <span>Or autofill:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setStudentId('22X51A0501');
+                setPassword('Student@Srec2026');
+              }}
+              className="text-blue-700 underline font-mono font-bold hover:text-blue-900"
+            >
+              22X51A0501 / Student@Srec2026
+            </button>
+          </div>
         </div>
 
         {/* Error Alert */}
