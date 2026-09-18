@@ -144,6 +144,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setRole(res.role);
       setToken(res.access_token);
 
+      if (res.first_login) {
+        return { success: true, first_login: true };
+      }
+
       // Redirect based on role
       if (res.role === 'ADMIN') {
         router.push('/admin/dashboard');
@@ -157,16 +161,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { success: true, first_login: res.first_login };
     } catch (err: any) {
-      // Automatic demo fallback if backend is offline or credentials match demo
-      const lower = identifier.toLowerCase();
-      if (lower.includes('student') || lower.includes('22x') || lower.includes('229') || lower.includes('rahul') || lower.includes('teja')) {
-        return demoLogin('STUDENT');
-      } else if (lower.includes('faculty') || lower.includes('prof') || lower.includes('subba') || lower.includes('mallik')) {
-        return demoLogin('FACULTY');
-      } else if (lower.includes('admin') || lower.includes('principal') || lower.includes('santhiram')) {
-        return demoLogin('ADMIN');
+      // Check UserStore for registered / admin-issued accounts
+      const { UserStore } = await import('@/lib/user-store');
+      const verify = UserStore.verifyCredentials(identifier, pass);
+      if (verify.user) {
+        const u = verify.user;
+        const userObj: User = {
+          id: u.id,
+          user_code: u.user_code,
+          email: u.email,
+          full_name: u.full_name,
+          name: u.name,
+          role: u.role,
+          status: u.status,
+          first_login: u.mustChangePassword,
+          is_active: true,
+          department_name: u.department_name,
+        };
+
+        const localToken = `srec_token_${u.role.toLowerCase()}_${Date.now()}`;
+        localStorage.setItem('srec_token', localToken);
+        localStorage.setItem('srec_user', JSON.stringify(userObj));
+        setUser(userObj);
+        setRole(u.role);
+        setToken(localToken);
+
+        if (u.mustChangePassword) {
+          return { success: true, first_login: true };
+        }
+
+        if (u.role === 'ADMIN') {
+          router.push('/admin/dashboard');
+        } else if (u.role === 'STUDENT') {
+          router.push('/student/dashboard');
+        } else if (u.role === 'FACULTY') {
+          router.push('/faculty/dashboard');
+        }
+        return { success: true, first_login: false };
       }
-      return demoLogin('STUDENT');
+
+      return {
+        success: false,
+        error: verify.error || 'Invalid User ID or Password. If you are a new student or faculty, please submit an Access Request below.',
+      };
     } finally {
       setIsLoading(false);
     }
